@@ -6,7 +6,6 @@ function ListaBizneseve() {
   const [bizneset, setBizneset] = useState([]);
   const [loading, setLoading] = useState(true);
   const [kerko, setKerko] = useState('');
-  const [shfaqHarten, setShfaqHarten] = useState(false); // Shtet i ri për të ndryshuar ekranet
 
   const merrBizneset = async () => {
     setLoading(true);
@@ -35,40 +34,19 @@ function ListaBizneseve() {
     }
   };
 
+  // Funksioni që hap Google Maps zyrtar jashtë aplikacionit pa u bllokuar kurrë
+  const hapHartenZyrtare = (emri, qyteti) => {
+    const kërkimi = encodeURIComponent(`${emri}, ${qyteti}, Kosovo`);
+    const url = `https://google.com{kërkimi}`;
+    window.open(url, '_blank');
+  };
+
   const biznesetEFiltruara = bizneset.filter(b => 
     b.emri?.toLowerCase().includes(kerko.toLowerCase()) ||
     b.qyteti?.toLowerCase().includes(kerko.toLowerCase()) ||
     b.kategoria?.toLowerCase().includes(kerko.toLowerCase())
   );
 
-  // NËSE KLIKOHET BUTONI I HARTËS, SHFAQET KJO FAQE:
-  if (shfaqHarten) {
-    return (
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#111827', margin: 0 }}>Harta e Kosovës 🗺️</h2>
-          <button 
-            onClick={() => setShfaqHarten(false)} 
-            style={{ backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            ⬅️ Kthehu te Lista
-          </button>
-        </div>
-        <div style={{ width: '100%', height: '500px', backgroundColor: '#e5e7eb', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)' }}>
-<iframe 
-  title="MyKosova Map"
-  src="https://openstreetmap.org" 
-  width="100%" 
-  height="100%" 
-  style={{ border: 0, borderRadius: '24px' }}
-></iframe>
-
-        </div>
-      </div>
-    );
-  }
-
-  // FAQJA KRYESORE E LISTËS SË BIZNESEVE
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
       
@@ -122,9 +100,9 @@ function ListaBizneseve() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-              {/* KORRIGJUAR: Ky buton tani ndryshon shtetin për të hapur hartën */}
+              {/* KY BUTON TANI HAP MAPS-IN ZYRTAR PA ASNJË BLLOKIM */}
               <button 
-                onClick={() => setShfaqHarten(true)} 
+                onClick={() => hapHartenZyrtare(b.emri, b.qyteti)} 
                 style={{ backgroundColor: '#10b981', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
               >
                 Harta 🗺️
