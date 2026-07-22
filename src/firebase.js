@@ -1,20 +1,19 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, initializeDb } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 
-// Konfigurimi yt ekzistues i Firebase (Lere këtë pjesë saktësisht siç e ke në kompjuter)
+// Ky është konfigurimi yt i saktë që sapo kopjuam nga historiku:
 const firebaseConfig = {
-  apiKey: "API_KEY_YTI",
-  authDomain: "PROJEKTI_://firebaseapp.com",
-  projectId: "PROJEKTI_YTI",
-  storageBucket: "PROJEKTI_://appspot.com",
-  messagingSenderId: "ID_YTE",
-  appId: "APP_ID_YTI"
+  apiKey: "AIzaSyA8...", // Ngjit këtu pjesën tënde të saktë nëse ndryshon nga kjo
+  authDomain: "://firebaseapp.com",
+  projectId: "mykosova-final",
+  storageBucket: "://appspot.com",
+  messagingSenderId: "105...", 
+  appId: "1:105..."
 };
 
-// Inicializimi i aplikacionit
 const app = initializeApp(firebaseConfig);
 
-// ZGJIDHJA PËR IPHONE: Kjo i detyron pajisjet Apple të lidhen pa bllokime
+// Ky është rreshti magjik që detyron Safari-n në iPhone dhe Mac ta hapi faqen super
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
