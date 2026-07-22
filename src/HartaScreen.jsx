@@ -51,16 +51,16 @@ function HartaScreen() {
 
       {/* Kutia e Hartës (Iframe e thjeshtësuar e Kosovës ose Google Maps placeholder) */}
       <div style={{ width: '100%', height: '450px', backgroundColor: '#e5e7eb', borderRadius: '24px', overflow: 'hidden', border: `1px solid ${korniza}`, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)', position: 'relative' }}>
-        <iframe 
-          title="MyKosova Map"
-          src="https://google.com" 
-          width="100%" 
-          height="100%" 
-          style={{ border: 0 }} 
-          allowFullScreen="" 
-          loading="lazy" 
-          referrerPolicy="no-referrer-when-downgrade"
-        ></iframe>
+<iframe 
+  title="MyKosova Map"
+  src="https://google.com" 
+  width="100%" 
+  height="100%" 
+  style={{ border: 0 }} 
+  allowFullScreen="" 
+  loading="lazy"
+></iframe>
+
       </div>
 
     </div>
