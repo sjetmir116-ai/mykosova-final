@@ -1,20 +1,20 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, initializeDb } from "firebase/firestore";
 
+// Konfigurimi yt ekzistues i Firebase (Lere këtë pjesë saktësisht siç e ke në kompjuter)
 const firebaseConfig = {
-  apiKey: "AIzaSyCo720b5hAPjp-taEH78nMs5G7DSE8FKGk",
-  authDomain: "my-kosova.firebaseapp.com",
-  databaseURL: "https://my-kosova-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "my-kosova",
-  storageBucket: "my-kosova.firebasestorage.app",
-  messagingSenderId: "766501162220",
-  appId: "1:766501162220:web:211fb4f10fa55fdf2d29c9",
-  measurementId: "G-SL8JVCJGK8"
+  apiKey: "API_KEY_YTI",
+  authDomain: "PROJEKTI_://firebaseapp.com",
+  projectId: "PROJEKTI_YTI",
+  storageBucket: "PROJEKTI_://appspot.com",
+  messagingSenderId: "ID_YTE",
+  appId: "APP_ID_YTI"
 };
 
+// Inicializimi i aplikacionit
 const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
-
-const analytics = getAnalytics(app);
+// ZGJIDHJA PËR IPHONE: Kjo i detyron pajisjet Apple të lidhen pa bllokime
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
