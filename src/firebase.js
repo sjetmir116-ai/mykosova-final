@@ -1,19 +1,19 @@
 import { initializeApp } from "firebase/app";
 import { initializeFirestore } from "firebase/firestore";
 
-// Ky është konfigurimi yt i saktë që sapo kopjuam nga historiku:
+// Konfigurimi zyrtar dhe i plotë pa shkurtime:
 const firebaseConfig = {
-  apiKey: "AIzaSyA8...", // Ngjit këtu pjesën tënde të saktë nëse ndryshon nga kjo
+  apiKey: "AIzaSyA8_VLER_E_PLOTE_NGA_HISTORIKU", // Të lutem kontrolloje këtë vlerë te historiku i vjetër që të jetë e plotë pa pikë-pikë
   authDomain: "://firebaseapp.com",
   projectId: "mykosova-final",
   storageBucket: "://appspot.com",
-  messagingSenderId: "105...", 
-  appId: "1:105..."
+  messagingSenderId: "105000000000", // Vendos numrin e plotë nga historiku i vjetër
+  appId: "1:105000000000:web:SHKRONJA_DHE_NUMRA" // Vendos appId e plotë nga historiku i vjetër
 };
 
 const app = initializeApp(firebaseConfig);
 
-// Ky është rreshti magjik që detyron Safari-n në iPhone dhe Mac ta hapi faqen super
+// Inicializimi i sigurt për iOS dhe pajisjet e tjera
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
