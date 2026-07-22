@@ -1,0 +1,83 @@
+body {
+  margin: 0;
+  background-color: #f8fafc;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.app-main-container {
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-bottom: 80px;
+}
+
+/* HEADER */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #0f172a;
+  color: white;
+}
+.logo-section h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; }
+.logo-section p { margin: 2px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
+.language-selector select { padding: 5px; border-radius: 4px; border: none; font-weight: bold; }
+
+/* HERO BACKGROUND & SEARCH */
+.hero-section {
+  background-position: center;
+  background-size: cover;
+  padding: 30px 20px;
+  text-align: center;
+  color: white;
+}
+.hero-section h2 { font-size: 1.2rem; margin-bottom: 20px; font-weight: 500; }
+.search-box-container { display: flex; flex-direction: column; gap: 10px; }
+.main-search-input { padding: 12px; border: none; border-radius: 6px; font-size: 1rem; outline: none; color: #000; }
+.geo-button { padding: 10px; background-color: #e2e8f0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #0f172a; }
+
+/* REZULTATET */
+.search-results-section { padding: 20px; background-color: #f1f5f9; }
+.result-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.result-card h4 { margin: 0 0 8px 0; color: #1e3a8a; }
+.card-actions { display: flex; gap: 10px; margin-top: 10px; }
+.card-actions button { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; cursor: pointer; font-weight: 600; }
+
+/* KATEGORITË */
+.categories-section { padding: 20px; }
+.categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.category-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.category-card:hover { background: #cbd5e1; transform: translateY(-2px); }
+.category-card[aria-pressed="true"] { background: #dbeafe; border-color: #2563eb; }
+.category-icon { font-size: 1.8rem; margin-bottom: 5px; }
+.category-name { font-size: 0.8rem; font-weight: 600; color: #334155; text-align: center; }
+
+/* ASISTENTI AI FLOATING VIBE */
+.ai-toggle-floating-button { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background-color: #2563eb; color: white; border: none; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); cursor: pointer; z-index: 1000; width: 220px; }
+.floating-ai-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; z-index: 999; padding: 0 10px; box-sizing: border-box; }
+.floating-ai-container .chat-wrapper { margin: 0; height: auto; max-height: calc(100vh - 110px); }
+
+@media (max-width: 520px) {
+  .app-main-container { box-shadow: none; }
+  .main-header { padding: 14px; }
+  .categories-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* CHAT WINDOW STYLES */
+.chat-wrapper { background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; height: 420px; overflow: hidden; border: 1px solid #e2e8f0; }
+.chat-header { background-color: #0f172a; padding: 12px; text-align: center; color: white; }
+.chat-header h2 { margin: 0; font-size: 1rem; color: white !important; }
+.chat-header p { margin: 2px 0 0 0; font-size: 0.75rem; color: #94a3b8; }
+.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; }
+.message-bubble { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; line-height: 1.4; }
+.message-bubble.ai { background: #e2e8f0; color: black !important; align-self: flex-start; }
+.message-bubble.user { background: #2563eb; color: white !important; align-self: flex-end; }
+.chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #e2e8f0; gap: 8px; }
+.chat-input-area input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; color: black !important; background: white !important; }
+.chat-input-area button { padding: 0 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
