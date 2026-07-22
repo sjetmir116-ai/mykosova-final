@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { AppContext } from './context/AppContext';
+import { AppContext } from './AppContext';
 
 import HartaScreen from './HartaScreen';
 import ShtoBiznes from './ShtoBiznes';
