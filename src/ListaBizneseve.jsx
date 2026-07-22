@@ -55,15 +55,14 @@ function ListaBizneseve() {
           </button>
         </div>
         <div style={{ width: '100%', height: '500px', backgroundColor: '#e5e7eb', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e5e7eb', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)' }}>
-          <iframe 
-            title="MyKosova Map"
-            src="https://google.com" 
-            width="100%" 
-            height="100%" 
-            style={{ border: 0 }} 
-            allowFullScreen="" 
-            loading="lazy"
-          ></iframe>
+<iframe 
+  title="MyKosova Map"
+  src="https://openstreetmap.org" 
+  width="100%" 
+  height="100%" 
+  style={{ border: 0, borderRadius: '24px' }}
+></iframe>
+
         </div>
       </div>
     );
