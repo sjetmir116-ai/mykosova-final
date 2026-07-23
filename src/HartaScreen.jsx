@@ -4,19 +4,19 @@ import { AppContext } from './AppContext';
 function HartaScreen() {
   const { darkMode, userLocation, gpsError } = useContext(AppContext);
 
-  // Përcaktimi i qendrës së hartës (nëse nuk ka GPS, vendoset qendra e Kosovës)
-  const lat = userLocation ? userLocation.lat : 42.6629;
-  const lng = userLocation ? userLocation.lng : 21.1655;
+  // Nëse nuk ka kapur lokacion, vendoset qendra e Suharekës/Kosovës si default
+  const lat = userLocation ? userLocation.lat : 42.4166;
+  const lng = userLocation ? userLocation.lng : 20.8522;
 
-  // Linku zyrtar i Google Maps Iframe për t'u shfaqur pastër në çdo ekran
-  const mapUrl = `https://google.com{lat},${lng}&z=14&output=embed&iwloc=near`;
+  // Ndërtimi i linkut të embed-uar të Google Maps për iframe
+  const mapUrl = `https://google.com{lat},${lng}&z=14&output=embed`;
 
   return (
     <div style={{ maxWidth: '1000px', margin: '20px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
       <h2 style={{ color: darkMode ? '#ffffff' : '#1f2937', marginBottom: '4px' }}>Harta Dixhitale 🗺️</h2>
       <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>Gjej bizneset dhe pikat më të afërta në kohë reale.</p>
 
-      {/* Kutia e Lokacionit GPS */}
+      {/* Paneli i koordinatave GPS */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: darkMode ? '#1f2937' : '#ffffff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
         <div>
           <span style={{ fontWeight: 'bold', color: darkMode ? '#ffffff' : '#1f2937' }}>📍 Lokacioni Juaj</span>
@@ -28,10 +28,10 @@ function HartaScreen() {
         </span>
       </div>
 
-      {/* Kontenitori i Hartës Realizuar me Iframe pa gabime ngarkimi */}
+      {/* Kutia e Hartës Live */}
       <div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', backgroundColor: '#e5e7eb' }}>
         <iframe
-          title="MyKosova Map"
+          title="MyKosova Live Map"
           src={mapUrl}
           width="100%"
           height="100%"
