@@ -8,7 +8,7 @@ function HartaScreen() {
   const lng = userLocation ? userLocation.lng : 20.8522;
 
   // Ndërtimi i linkut të embed-uar të Google Maps për iframe
-  const mapUrl = `https://google.com{lat},${lng}&z=14&output=embed`;
+  const mapUrl = "https://google.com" + lat + "," + lng + "&z=14&output=embed";
 
   return (
     <div style={{ maxWidth: '1000px', margin: '20px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
