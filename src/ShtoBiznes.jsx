@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { AppContext } from './context/AppContext';
+import { AppContext } from './AppContext';
 import { db } from "./firebase";
 import { collection, addDoc } from "firebase/firestore";
 
