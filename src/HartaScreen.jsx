@@ -30,18 +30,16 @@ function HartaScreen() {
 
       {/* Kutia e Hartës Live me IFRAME (Kjo zëvendëson imazhin e thyer) */}
       <div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', backgroundColor: '#e5e7eb' }}>
-        <iframe
-          title="MyKosova Live Map"
-          src={mapUrl}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-        ></iframe>
-      </div>
-    </div>
-  );
-}
+{/* Kjo duhet të jetë ekzaktësisht kështu */}
+<div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#e5e7eb' }}>
+  <iframe
+    title="MyKosova Live Map"
+    src={mapUrl}
+    width="100%"
+    height="100%"
+    style={{ border: 0 }}
+    allowFullScreen=""
+    loading="lazy"
+  ></iframe>
+</div>
 
-export default HartaScreen;
