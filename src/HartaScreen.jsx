@@ -1,13 +1,14 @@
 import React, { useContext } from 'react';
 import { AppContext } from './AppContext';
+
 function HartaScreen() {
   const { darkMode, userLocation, gpsError } = useContext(AppContext);
 
-  // Nëse nuk ka kapur lokacion, vendoset qendra e Suharekës/Kosovës si default
-  const lat = userLocation ? userLocation.lat : 42.4166;
-  const lng = userLocation ? userLocation.lng : 20.8522;
+  // Koordinatat aktuale nga GPS ose Suhareka si default
+  const lat = userLocation ? userLocation.lat : 42.3590;
+  const lng = userLocation ? userLocation.lng : 20.8304;
 
-  // Ndërtimi i linkut të embed-uar të Google Maps për iframe
+  // Linku i saktë për iframe
   const mapUrl = "https://google.com" + lat + "," + lng + "&z=14&output=embed";
 
   return (
@@ -27,7 +28,7 @@ function HartaScreen() {
         </span>
       </div>
 
-      {/* Kutia e Hartës Live */}
+      {/* Kutia e Hartës Live me IFRAME (Kjo zëvendëson imazhin e thyer) */}
       <div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', backgroundColor: '#e5e7eb' }}>
         <iframe
           title="MyKosova Live Map"
