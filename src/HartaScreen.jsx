@@ -9,7 +9,7 @@ function HartaScreen() {
   const lng = userLocation ? userLocation.lng : 20.8304;
 
   // Lidhja universale e saktë për Google Maps pa thonjëza të gabuara
-  const mapUrl = "https://google.com" + lat + "," + lng + "&z=14&output=embed";
+  const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=14&output=embed`;
 
   return (
     <div style={{ maxWidth: '1000px', margin: '20px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
