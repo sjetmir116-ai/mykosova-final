@@ -1,12 +1,16 @@
-import { StrictMode } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
-import ListaBizneseve from './ListaBizneseve.jsx'
-import { AppProvider } from './AppContext.jsx'
+import App from './App.jsx'
+import { AppProvider } from './AppContext.jsx' // <--- Kjo rresht mungonte!
+import './index.css'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+const container = document.getElementById('root')
+const root = createRoot(container)
+
+root.render(
+  <React.StrictMode>
     <AppProvider>
-      <ListaBizneseve />
+      <App />
     </AppProvider>
-  </StrictMode>
+  </React.StrictMode>
 )
