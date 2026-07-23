@@ -42,4 +42,3 @@ function HartaScreen() {
     loading="lazy"
   ></iframe>
 </div>
-
