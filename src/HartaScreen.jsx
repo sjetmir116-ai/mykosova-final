@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { AppContext } from './AppContext';
-
 function HartaScreen() {
   const { darkMode, userLocation, gpsError } = useContext(AppContext);
 
