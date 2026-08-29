@@ -144,11 +144,13 @@ src/
 
 **Mbyllja zyrtare (29.08.2026):** përdoruesi e testoi nga browser-i — Profili i Biznesit ✅, Ndaje me 3 opsione (WhatsApp/Kopjo Linkun/Browser) ✅, linku `#biznesi=Emri` hap biznesin direkt ✅, Moderimi te Admin ✅, Oferta te Shto Biznes ✅. Backup: tag `backup-faza2-final` + branch `backup/faza2-2026-08-29` (commit `311a426`, verifikuar te GitHub).
 
-### 🥉 FAZA 3 — VEÇORITË E LARTË
-1. ✅ **"Afër meje" — distanca GPS (Haversine) + butoni në Ballina/Harta** (29.08.2026): buton te Ballina + shiriti "Të afërt me ju" (4 më të afërtat me foto + distancë), ndërrues "📍 Afër meje ✓" te Lista (renditje live + shenja "X km nga ju" + statusi i GPS me riprovim), buton "📍 Afër meje" te Harta. U shtuan lat/lng te 7 bizneset lokale + u rregullua bug i vjetër `meDistanca` (parametri i keq-emërtuar) — gjetur me 12 teste unitare (12/12 ✅)
-2. ✅ **`Turizmi.jsx` — pika turistike me foto, histori, navigo** (29.08.2026): faqe e dedikuar me 10 atraksione (foto, përshkrim, aktivitetet, Navigo Google Maps), ullërimi i 10 qyteteve (filtrim), filtri i kategorive, renditje sipas distancës nga lokacioni real/manual (integrim me "Afër meje"), buton te navbar (5 gjuhë) + 4 kartela te Ballina. U rregulluan 8 gabime koordinatash (p.sh. Kalaja e Gjakovës ishte te koordinatat e Prizrenit) — verifikuar me 11 teste
-3. `Ofertat.jsx` — të gjitha ofertat në një vend
-4. Analytics events (search, view, navigate, rate, sos)
+### 🥉 FAZA 3 — VEÇORITË E LARTË ✅ E MBYLLUR ZYRTARE (29.08.2026)
+1. ✅ **"Afër meje" — distanca GPS (Haversine) + butoni në Ballina/Harta** (29.08.2026): buton te Ballina + shiriti "Të afërt me ju" (4 më të afërtat me foto + distancë), ndërrues "📍 Afër meje ✓" te Lista (renditje live + shenja "X km nga ju" + statusi i GPS me riprovim), buton "📍 Afër meje" te Harta. **v2 (kërkesë e përdoruesit):** watchPosition (auto-rifreskim kur lëviz), ASGJË auto-Prishtina, pika referencë MANUALE (33 qytete) kur GPS refuzohet, saktësia ±m — testuar me GPS real të telefonit (përputhet me Google Maps). U shtuan lat/lng te 7 bizneset lokale + u rregullua bug i vjetër `meDistanca` — gjetur me 30 teste unitare
+2. ✅ **`Turizmi.jsx` — pika turistike me foto, histori, navigo** (29.08.2026): faqe e dedikuar me 10 atraksione (foto me fallback gradient+ikonë, përshkrim, aktivitetet, Navigo), ullërimi i 10 qyteteve (filtrim), filtri i kategorive, renditje sipas distancës nga lokacioni real/manual, buton te navbar (5 gjuhë) + 4 kartela te Ballina. U rregulluan 8 gabime koordinatash (p.sh. Kalaja e Gjakovës ishte 100 km larg — te koordinatat e Prizrenit) — verifikuar me 11 teste
+3. ✅ **`Ofertat.jsx` — të gjitha ofertat në një vend** (29.08.2026): faqe e dedikuar me dy burime (ofertat dinamike me skadencë nga `offers` + të përhershme nga bizneset), filtri i qytetit, distanca, Navigo (embed fallback), "Hap biznesin" → profilli, seksion i skaduarave, gjendja bosh me CTA, buton navbar + seksion te Ballina — 5 teste të skadencës
+4. ✅ **Analytics** (29.08.2026): 8 ngjarje (kërkim, hapje_biznesi, navigo, telefon, vlerësim, sos, ndaje, shtim_biznesi) nga çdo vizitor te `analytics_events` (fire-and-forget), **Paneli Admin → 📊 Analitika** (statistika live, top biznese/kërkime, veprat, 7 ditët e fundit), rules v2.1 me validim të mbyllur (fushat e sakta + ngjarje të njohura + koha e serverit) — 7 teste
+
+**Mbyllja zyrtare (29.08.2026):** të 4 veçoritë testuara me sukses nga përdoruesi (GPS real te telefoni, Navigo me embed, Ofertat → profilli, Analitika live). Raporti: `RAPORT_FAZA3.md`. Backup: `backup-faza3-final-2026-08-29`. Versioni: v1.0.9.
 
 ### 🏁 FAZA 4 — POLISHERI + LANSIM
 1. PWA: manifest + service worker (offline)
