@@ -41,9 +41,9 @@ const rendit = (ul) => [...biznesetFillestare]
   });
 const ngaPrishtina = rendit({ lat: 42.6627, lng: 21.1655 });
 const ngaPrizreni = rendit({ lat: 42.6820, lng: 20.7968 });
-const d1 = ngaPrishtina[0].distanca, d2 = ngaPrizreni[0].distanca;
-test('Prizreni eshte me afersuharekes (' + d2.toFixed(1) + ' < ' + d1.toFixed(1) + ' km)', d2 < 15 && d1 > 30);
-test('Distanca NDRYSHON kur perdoruesi leviz', d1 !== d2);
+test('Nga Prishtina, biznesi i pari eshte i Prishtines (rez: ' + ngaPrishtina[0].emri + ')', ngaPrishtina[0].qyteti === 'Prishtinë');
+test('Nga Prizreni, biznesi i pari eshte i Prizrenit (rez: ' + ngaPrizreni[0].emri + ')', ngaPrizreni[0].qyteti === 'Prizren');
+test('Biznesi me i aferten ndryshon kur perdoruesi leviz', ngaPrishtina[0].emri !== ngaPrizreni[0].emri);
 test('Renditja eshte rritese', ngaPrishtina.every((b, i) => i === 0 || (b.distanca == null) || b.distanca >= ngaPrishtina[i - 1].distanca));
 
 console.log('=== distanca: ' + mire + ' te kaluara, ' + gabim + ' GABIME ' + (gabim ? '⚠️' : '✅') + ' ===');

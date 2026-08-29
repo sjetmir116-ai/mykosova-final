@@ -47,7 +47,7 @@ export const biznesetFillestare = [
   // ===== BIZNESE REALE E TË NJOHURA NË TË GJITHË KOSOVËN (u shtua 29.08.2026) =====
   // Vetëm vende të qëndrueshme e publike; telefoni vetëm numrat kombëtarë (194).
   {
-    id: 10, emri: "QKMF (Spitali Rajonal) Prishtinë", kategoria: "Health", qyteti: "Prishtinë", adresa: "Rruga e Qirjes, Prishtinë", lat: 42.6585, lng: 21.1470, telefoni: "194",
+    id: 10, emri: "QKMF (Spitali Rajonal) Prishtinë", kategoria: "Health", qyteti: "Prishtinë", adresa: "Rruga e Qirjes, Prishtinë", lat: 42.6585, lng: 21.1470, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal kryesor i Kosovës — urgjencë 24/7, poliklinikë, laborator dhe ambulancë e shtuar (194).",
     komentet: [{ autor: "Vizitor", tekst: "Urgjenca mban 24 orë, stafi i disponueshëm.", yje: 4 }]
   },
@@ -77,7 +77,7 @@ export const biznesetFillestare = [
     komentet: [{ autor: "Vizitor", tekst: "Hajde edhe për kafene edhe për blerje.", yje: 4 }]
   },
   {
-    id: 16, emri: "QKMF (Spitali Rajonal) Prizren", kategoria: "Health", qyteti: "Prizren", adresa: "Prizren", lat: 42.6873, lng: 20.7994, telefoni: "194",
+    id: 16, emri: "QKMF (Spitali Rajonal) Prizren", kategoria: "Health", qyteti: "Prizren", adresa: "Prizren", lat: 42.6873, lng: 20.7994, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Prizrenit — urgjencë 24/7 dhe shërbime poliklinikë për zonën e Pejës dhe Therandës.",
     komentet: [{ autor: "Vizitor", tekst: "Afër qytetit, urgjenca e shpejtë.", yje: 4 }]
   },
@@ -92,7 +92,7 @@ export const biznesetFillestare = [
     komentet: [{ autor: "Vizitor", tekst: "Shërbim i shpejtë dhe çmime të qarta.", yje: 4 }]
   },
   {
-    id: 19, emri: "QKMF (Spitali Rajonal) Pejë", kategoria: "Health", qyteti: "Pejë", adresa: "Pejë", lat: 42.0540, lng: 20.3755, telefoni: "194",
+    id: 19, emri: "QKMF (Spitali Rajonal) Pejë", kategoria: "Health", qyteti: "Pejë", adresa: "Pejë", lat: 42.0540, lng: 20.3755, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Pejës — urgjencë 24/7, shërbime kirurgjikale dhe poliklinikë, pikë referencë për lindjen e Pejës.",
     komentet: [{ autor: "Vizitor", tekst: "E afërt me qytetin, stafi profesional.", yje: 4 }]
   },
@@ -102,22 +102,22 @@ export const biznesetFillestare = [
     komentet: [{ autor: "Vizitor", tekst: "Pamja nga lartë vlen për çdo hap.", yje: 5 }]
   },
   {
-    id: 21, emri: "QKMF (Spitali Rajonal) Gjakovë", kategoria: "Health", qyteti: "Gjakovë", adresa: "Gjakovë", lat: 42.3270, lng: 20.3400, telefoni: "194",
+    id: 21, emri: "QKMF (Spitali Rajonal) Gjakovë", kategoria: "Health", qyteti: "Gjakovë", adresa: "Gjakovë", lat: 42.3270, lng: 20.3400, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Gjakovës — urgjencë 24/7 dhe shërbime mjekësore për zonën e Gjakovës.",
     komentet: [{ autor: "Vizitor", tekst: "Në qendër të qytetit, e lehtë për t'u arritur.", yje: 4 }]
   },
   {
-    id: 22, emri: "QKMF (Spitali Rajonal) Ferizaj", kategoria: "Health", qyteti: "Ferizaj", adresa: "Ferizaj", lat: 42.3610, lng: 20.8770, telefoni: "194",
+    id: 22, emri: "QKMF (Spitali Rajonal) Ferizaj", kategoria: "Health", qyteti: "Ferizaj", adresa: "Ferizaj", lat: 42.3610, lng: 20.8770, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Ferizajt — urgjencë 24/7 dhe shërbime poliklinikë për zonën e Drenasit.",
     komentet: [{ autor: "Vizitor", tekst: "Urgjenca e hapur gjithmonë.", yje: 4 }]
   },
   {
-    id: 23, emri: "QKMF (Spitali Rajonal) Mitrovicë", kategoria: "Health", qyteti: "Mitrovicë", adresa: "Mitrovicë", lat: 42.8290, lng: 20.8790, telefoni: "194",
+    id: 23, emri: "QKMF (Spitali Rajonal) Mitrovicë", kategoria: "Health", qyteti: "Mitrovicë", adresa: "Mitrovicë", lat: 42.8290, lng: 20.8790, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Mitrovicës — urgjencë 24/7 dhe shërbime mjekësore për zonën e verior të Kosovës.",
     komentet: [{ autor: "Vizitor", tekst: "E afërt me qendër, shërbim i qëndrueshëm.", yje: 4 }]
   },
   {
-    id: 24, emri: "QKMF (Spitali Rajonal) Suharekë", kategoria: "Health", qyteti: "Suharekë", adresa: "Qendra, Suharekë", lat: 42.5693, lng: 20.7845, telefoni: "194",
+    id: 24, emri: "QKMF (Spitali Rajonal) Suharekë", kategoria: "Health", qyteti: "Suharekë", adresa: "Qendra, Suharekë", lat: 42.5693, lng: 20.7845, vleresimi: 4.5, telefoni: "194",
     pershkrimi: "Spitali rajonal i Suharekës — urgjencë 24/7, shërbime kirurgjikale dhe poliklinikë, pikë referencë për Therandën.",
     komentet: [{ autor: "Vizitor", tekst: "Në qendër, urgjenca e shpejtë.", yje: 4 }]
   }
