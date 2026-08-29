@@ -152,12 +152,12 @@ src/
 
 **Mbyllja zyrtare (29.08.2026):** të 4 veçoritë testuara me sukses nga përdoruesi (GPS real te telefoni, Navigo me embed, Ofertat → profilli, Analitika live). Raporti: `RAPORT_FAZA3.md`. Backup: `backup-faza3-final-2026-08-29`. Versioni: v1.0.9.
 
-### 🏁 FAZA 4 — POLISHERI + LANSIM
-1. PWA: manifest + service worker (offline)
-2. Deploy Netlify (netlify.toml) + SEO meta tags
-3. Firebase Security Rules (lexim public, shkrim i kufizuar)
-4. Testet e vërteta (motori i AI-së + filtrimet)
-5. README i plotë
+### 🏁 FAZA 4 — POLISHERI + LANSIM 🚧 (në vazhdim)
+1. ✅ **PWA: manifest + service worker (offline)** — manifesti ekzistonte; u shtuan ikonat PNG 192/512 + apple-touch-icon (29.08.2026) → instalueshme te telefoni
+2. 🚧 **Deploy Netlify** — `netlify.toml` i gati (build `npm run build`, publish `dist`, SPA redirects, header-e sigurie); **pret veprimin e përdoruesit** (llogari Netlify falas → import GitHub → deploy)
+3. ✅ **Firebase Security Rules** — v2.1 (me analytics_events) e publikuar nga përdoruesi (29.08.2026)
+4. ✅ **Testet formale** — 57 teste unitare të qëndrueshme (`tests/test-*.mjs`) + suita 5-hapëshe (`tests/run-all.sh`: unitare + konstante + context + SSR smoke + build)
+5. ✅ **README** — dokumentacioni i plotë (stack, struktura, teste, deploy, siguria, backup-et)
 
 ---
 
