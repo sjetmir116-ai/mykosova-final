@@ -20,7 +20,7 @@ import AdminLayout from './admin/AdminLayout';
 
 // Ekranet kryesore të aplikacionit (rruga "/")
 function EkraniKryesor() {
-  const { darkMode, setDarkMode, gjuha, setGjuha, përdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, t } = useContext(AppContext);
+  const { darkMode, setDarkMode, gjuha, setGjuha, përdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, t, userLocation, riprovoGPS } = useContext(AppContext);
   const navigate = useNavigate();
   const [ekraniAktual, setEkraniAktual] = useState('ballina');
   const { bizneset } = useBizneset();
@@ -134,7 +134,15 @@ function EkraniKryesor() {
         </div>
 
         {/* Paneli i përzgjedhjes së 5 Gjuhëve dhe Butoni Dark Mode */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {/* BUTONI "POZICIONI IM" — merr lokacionin tënd dhe të hap te harta (pa numra) */}
+          <button
+            onClick={() => { riprovoGPS(); setEkraniAktual('harta'); }}
+            title="Pozicioni im — merr lokacionin tënd real dhe të hap te harta"
+            style={{ height: '40px', padding: '0 14px', borderRadius: '20px', border: 'none', backgroundColor: userLocation?.burimi === 'gps' ? '#16a34a' : darkMode ? '#2d2d2d' : '#e5e7eb', color: userLocation?.burimi === 'gps' ? '#fff' : stiliTekstit, cursor: 'pointer', fontSize: '12px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}
+          >
+            📍 Pozicioni im {userLocation?.burimi === 'gps' ? '✓' : ''}
+          </button>
           <select
             value={gjuha}
             onChange={(e) => setGjuha(e.target.value)}
@@ -208,7 +216,7 @@ function EkraniKryesor() {
 
       {/* Footer me linket juridikore */}
       <footer style={{ padding: '14px 20px', borderTop: `1px solid ${vijaNdarse}`, display: 'flex', justifyContent: 'center', gap: '18px', fontSize: '12px', color: '#8e8e93', backgroundColor: darkMode ? '#111827' : '#ffffff', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span>MyKosova 🇽 v1.0.13</span>
+        <span>MyKosova 🇽 v1.0.14</span>
         <button onClick={() => setEkraniAktual('legal')} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
           Privatësia
         </button>

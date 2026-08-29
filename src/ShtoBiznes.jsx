@@ -5,13 +5,14 @@ import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { useKategorite, useQyteteve } from './useKontenti';
 import { regjistroAudit } from './audit';
 import Foto from './Foto';
+import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
 
 // ===== REGJISTRIMI I BIZNESIT — WIZARD me 6 HAPA (spec B18) =====
 // 1.Info 2.Kategori 3.Lokacion+GPS 4.Foto 5.Kontakt 6.Review & Submit
 // Biznesi shkon me status 'pendshe' — e miraton admini
 function ShtoBiznes() {
-  const { darkMode, përdoruesi, userLocation, setBiznesiIzgjedhur } = useContext(AppContext);
+  const { darkMode, përdoruesi, userLocation, setBiznesiIzgjedhur, riprovoGPS, vendndodhja } = useContext(AppContext);
   const { lista: kategoritë } = useKategorite();
   const { lista: qytetet } = useQyteteve();
 
@@ -36,6 +37,21 @@ function ShtoBiznes() {
   ];
 
   const ndrysho = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  // BUTONI "POZICIONI IM" (kërkesa e përdoruesit): merr pozicionin e biznesit nga
+  // GPS-i (ose qyteti manual) — PA shkruar asnjë numër lat/lng
+  const merrPozicionin = () => {
+    if (userLocation) {
+      setForm((f) => ({
+        ...f,
+        lat: userLocation.lat.toFixed(6),
+        lng: userLocation.lng.toFixed(6),
+        qyteti: f.qyteti || (userLocation.burimi === 'manual' ? userLocation.qyteti : f.qyteti),
+      }));
+    } else {
+      riprovoGPS(); // kërkon GPS-in — kur mbërrin, përdoruesi shtyp përsëri
+    }
+  };
 
   // Validimi i secilit hap
   const esIvlefshem = (h) => {
@@ -183,20 +199,29 @@ function ShtoBiznes() {
             </div>
           )}
 
-          {/* HAPI 3 — LOKACIONI */}
+          {/* HAPI 3 — LOKACIONI (pa numra: vetëm butoni "Pozicioni im") */}
           {hapi === 3 && (
             <>
               {fusha('Qyteti', 'qyteti', 'text', 'p.sh. Prishtinë', true)}
               {fusha('Adresa', 'adresa', 'text', 'p.sh. Rruga e Dibrës 15')}
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div style={{ flex: 1 }}>{fusha('Gjerësia (lat)', 'lat', 'number', '42.6629')}</div>
-                <div style={{ flex: 1 }}>{fusha('Gjatësia (lng)', 'lng', 'number', '21.1655')}</div>
-              </div>
-              {userLocation && (
-                <button type="button" onClick={() => setForm({ ...form, lat: userLocation.lat.toFixed(6), lng: userLocation.lng.toFixed(6) })}
-                  style={{ alignSelf: 'flex-start', backgroundColor: 'none', border: '1px solid ' + (userLocation.burimi === 'gps' ? '#3b82f6' : '#d97706'), color: userLocation.burimi === 'gps' ? '#3b82f6' : '#d97706', padding: '9px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
-                  📍 {userLocation.burimi === 'gps' ? 'Përdor lokacionin tim (GPS real)' : `Përdor ${userLocation.qyteti} (MANUAL — jo GPS)`}
-                </button>
+              <button type="button" onClick={merrPozicionin}
+                style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', backgroundColor: form.lat ? '#16a34a' : '#3b82f6', color: '#fff', fontWeight: '800', fontSize: '14px', cursor: 'pointer' }}>
+                {userLocation ? '📍 Pozicioni im' : '📍 Pozicioni im — duke kërkuar GPS...'}
+              </button>
+              {form.lat ? (
+                <p style={{ margin: 0, color: '#16a34a', fontWeight: '800', fontSize: '13px' }}>
+                  ✅ Pozicioni u ruajt: {vendndodhja || '...'} — biznesi do të shfaqet te harta
+                </p>
+              ) : (
+                <p style={{ margin: 0, fontSize: '12px', color: '#8e8e93' }}>
+                  Shtyp butonin — pozicioni merret vetë, s'ke për të shkruar asnjë numër.
+                </p>
+              )}
+              {!userLocation && (
+                <div>
+                  <p style={{ margin: '8px 0 6px', fontSize: '12px', color: '#8e8e93' }}>GPS nuk u merr? Zgjidh qytetin e biznesit:</p>
+                  <QytetiManual />
+                </div>
               )}
             </>
           )}
