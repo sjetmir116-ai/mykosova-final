@@ -27,5 +27,15 @@ export const auth = getAuth(app);
 // Eksportimi i Functions (pagesat: nisPagesen, hapPortalin, anuloSubscription, riperditStatistikat)
 export const fcn = getFunctions(app);
 
-// Inicializimi i Analytics
-const analytics = getAnalytics(app);
+// Inicializimi i Analytics — VETËM në mjedise që e mbështetin (browser me cookies).
+// Pattern-i zyrtar i Firebase: pa guard, shton "window is not defined" te
+// service worker, SSR ose mjedise pa cookies. (Nuk përdoret ende nga UI — Faza 3.4)
+let analytics = null;
+try {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    analytics = getAnalytics(app);
+  }
+} catch (e) {
+  console.warn('Analytics s\u2019u inicializua (mjedis i pamështetur):', e.message);
+}
+export { analytics };

@@ -115,7 +115,7 @@ export function useAttraksioneve() {
 
   // Bashkim: lokale + DB (DB merr parësi sipas emrit)
   const normalizo = (v) => String(v || '').toLowerCase();
-  let lista = ATRAKSIOET_LOKALE.map((a) => ({ ...a, burimi: 'lokal' }));
+  let lista = ATRAKSIONET_LOKALE.map((a) => ({ ...a, burimi: 'lokal' }));
   for (const a of ngaDb) {
     const iEkzistenti = lista.find((l) => normalizo(l.emri) === normalizo(a.emri));
     if (iEkzistenti) Object.assign(iEkzistenti, a, { burimi: 'db' });
