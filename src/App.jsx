@@ -173,7 +173,7 @@ function EkraniKryesor() {
         ) : (
           <>
             {ekraniAktual === 'ballina' && <HomeScreen setEkrani={setEkraniAktual} />}
-            {ekraniAktual === 'harta' && <HartaScreen />}
+            {ekraniAktual === 'harta' && <HartaScreen setEkrani={setEkraniAktual} />}
             {ekraniAktual === 'shto' && <ShtoBiznes />}
             {ekraniAktual === 'kerko' && <SmartSearch />}
             {ekraniAktual === 'lista' && <ListaBizneseve />}

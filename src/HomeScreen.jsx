@@ -2,11 +2,29 @@ import { useContext, useState } from 'react';
 import { AppContext } from './AppContext';
 import theme from './theme';
 import { useMoti, esMotIMire } from './moti';
+import { useBizneset } from './useBizneset';
+import { meDistanca, formatoDistancm } from './distanca';
+import { gjejFotoAutomatikisht } from './biznesFoto';
 
 function HomeScreen({ setEkrani }) {
-  const { darkMode, gjuha, setGjuha, userLocation, gpsError, riprovoGPS, t, vleraKerkimi, setVleraKerkimi } = useContext(AppContext);
+  const { darkMode, gjuha, setGjuha, userLocation, gpsError, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
   const [tekstiKerkimit, setTekstiKerkimit] = useState(vleraKerkimi);
   const { moti, loading: motiLoading, gabim: motiGabim } = useMoti(userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : {});
+  const { bizneset } = useBizneset();
+
+  // AFËR MEJE (Faza 3): 4 bizneset më të afërta nga GPS-i i përdoruesit (Haversine)
+  const teAferT = userLocation
+    ? bizneset
+        .map((b) => meDistanca(b, userLocation))
+        .filter((b) => b.distanca != null)
+        .sort((a, b) => a.distanca - b.distanca)
+        .slice(0, 4)
+    : [];
+
+  const hapAfërMeje = () => {
+    setAfërMeje(true);
+    setEkrani('lista');
+  };
 
   // Kategoritë smart — kliko çdo kartelë për ta kërkuar atë kategori
   const kategoriteSmart = [
@@ -154,6 +172,68 @@ function HomeScreen({ setEkrani }) {
             }}
           />
         </form>
+      </div>
+
+      {/* 4. AFËR MEJE (Faza 3) — butoni + 4 bizneset më të afërta */}
+      <div style={{ marginBottom: '35px' }}>
+        <button
+          onClick={hapAfërMeje}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '15px',
+            borderRadius: theme.borderRadius.pill,
+            border: afërMeje ? 'none' : `1px solid ${korniza}`,
+            backgroundColor: afërMeje ? theme.colors.blue : stiliKartelës,
+            color: afërMeje ? '#fff' : stiliTekstit,
+            fontWeight: '800',
+            fontSize: '15px',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          }}
+        >
+          📍 {t('rrethMeje')} — rendit sipas distancës
+        </button>
+
+        {teAferT.length > 0 && (
+          <div style={{ marginTop: '14px' }}>
+            <div style={{ fontSize: '12px', fontWeight: '800', color: '#8e8e93', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Të afërt me ju tani {userLocation.fallback ? '(bazë: Prishtina)' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none' }}>
+              {teAferT.map((b) => (
+                <div
+                  key={b.id}
+                  onClick={() => setBiznesiIzgjedhur(b)}
+                  style={{
+                    minWidth: '130px',
+                    maxWidth: '130px',
+                    backgroundColor: stiliKartelës,
+                    borderRadius: theme.borderRadius.pill,
+                    overflow: 'hidden',
+                    border: `1px solid ${korniza}`,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <img
+                    src={b.foto && String(b.foto).startsWith('http') ? b.foto : gjejFotoAutomatikisht(b.emri, b.kategoria)}
+                    alt={b.emri}
+                    style={{ width: '100%', height: '64px', objectFit: 'cover', display: 'block' }}
+                    onError={(e) => (e.target.style.display = 'none')}
+                  />
+                  <div style={{ padding: '8px 10px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: stiliTekstit, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.emri}</div>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: theme.colors.blue }}>📍 {formatoDistancm(b.distanca)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4. SEKSIONI UNIK: MADE IN KOSOVO 🇽🇰 */}

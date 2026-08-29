@@ -14,6 +14,7 @@ export const AppProvider = ({ children }) => {
   const [gpsError, setGpsError] = useState(null);
   const [përdoruesi, setPërdoruesi] = useState(null); // Profili i përdoruesit të loguar (ose null)
   const [biznesiIzgjedhur, setBiznesiIzgjedhur] = useState(null); // Biznesi i hapur te Profili (U18) — cdo ekran mund ta hapë
+  const [afërMeje, setAfërMeje] = useState(false); // "Afër meje" (Faza 3) — renditja sipas distancës GPS
 
   // Sync i përdoruesit me Firebase Auth
   useEffect(() => {
@@ -165,7 +166,7 @@ export const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, riprovoGPS: kërkoGPS, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, t }}>
+    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, riprovoGPS: kërkoGPS, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, t }}>
       {children}
     </AppContext.Provider>
   );

@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { AppContext } from './AppContext';
 
-function HartaScreen() {
-  const { darkMode, userLocation, gpsError } = useContext(AppContext);
+function HartaScreen({ setEkrani }) {
+  const { darkMode, userLocation, gpsError, afërMeje, setAfërMeje } = useContext(AppContext);
 
   // Koordinatat zyrtare: nëse nuk ka kapur GPS, vendoset default lokacioni i fundit
   const lat = userLocation ? userLocation.lat : 42.3590;
@@ -26,6 +26,14 @@ function HartaScreen() {
         <span style={{ backgroundColor: gpsError ? '#fef2f2' : '#e6f4ea', color: gpsError ? '#dc2626' : '#137333', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
           {gpsError ? 'Gabim GPS' : '● Aktiv'}
         </span>
+        {/* AFËR MEJE (Faza 3) — nga harta te lista e renditur sipas distancës */}
+        <button
+          onClick={() => { setAfërMeje(true); if (setEkrani) setEkrani('lista'); }}
+          title="Hap listën e bizneseve të renditura sipas distancës nga ju"
+          style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', backgroundColor: '#3b82f6', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          📍 Afër meje
+        </button>
       </div>
 
       {/* Kontenitori i Hartës Live me IFRAME (Zgjidhja përfundimtare) */}

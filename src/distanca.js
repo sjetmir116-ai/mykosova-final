@@ -23,10 +23,10 @@ export function formatoDistancm(km) {
 // Shton distancën te një biznes nëse ka GPS + ka përdoruesi pozicion
 export function meDistanca(biznesi, perezioni) {
   if (
-    perezon.lat != null && perezon.lng != null &&
+    perezioni.lat != null && perezioni.lng != null &&
     biznesi.lat != null && biznesi.lng != null
   ) {
-    return { ...biznesi, distanca: distancaKm(perezon.lat, perezon.lng, Number(biznesi.lat), Number(biznesi.lng)) };
+    return { ...biznesi, distanca: distancaKm(perezioni.lat, perezioni.lng, Number(biznesi.lat), Number(biznesi.lng)) };
   }
   return { ...biznesi, distanca: null };
 }
