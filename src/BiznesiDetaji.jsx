@@ -26,6 +26,7 @@ function BiznesiDetaji({ biznesi }) {
   const [dukeRuajtur, setDukeRuajtur] = useState(false);
   const [mesazhi, setMesazhi] = useState('');
   const [dukeRezervuar, setDukeRezervuar] = useState(false);
+  const [menujaESharingut, setMenujaESharingut] = useState(false);
 
   const stiliKartelës = darkMode ? '#1c1c1e' : '#ffffff';
   const korniza = darkMode ? '#2d2d2d' : '#e5e7eb';
@@ -93,20 +94,41 @@ function BiznesiDetaji({ biznesi }) {
     }
   };
 
-  // Shënim anti-spam për përdoruesit
+  // ===== NDAJE (Faza 2 — kërkesa: "WhatsApp + kopjo linkun") =====
+  const linku = () => {
+    // Një link që hap saktë këtë biznes, edhe nëse përdoruesi e hap në seancë tjetër
+    const emriIu = encodeURIComponent(biznesi.emri);
+    return `${window.location.origin}${window.location.pathname}#biznesi=${emriIu}`;
+  };
 
-  const ndaje = async () => {
+  const ndajeMeBrowser = async () => {
     const teksti = `${biznesi.emri} — ${biznesi.qyteti}, Kosovë (MyKosova)`;
-    if (navigator.share) {
+    try {
+      await navigator.share({ title: biznesi.emri, text: teksti, url: linku() });
+    } catch { /* anulohet nga përdoruesi */ }
+  };
+
+  const ndajeTeWhatsApp = () => {
+    const teksti = encodeURIComponent(`Po të ndaj një biznes të gjetur te MyKosova: ${biznesi.emri} — ${biznesi.qyteti}, Kosovë 🇽\n${linku()}`);
+    window.open(`https://wa.me/?text=${teksti}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const kopjoLinkun = async () => {
+    try {
+      await navigator.clipboard.writeText(linku());
+      setMesazhi('📋 Linku u kopjua — ngjite ku do. ✓');
+    } catch {
+      // fallback për browser-a pa clipboard API
       try {
-        await navigator.share({ title: biznesi.emri, text: teksti, url: window.location.href });
-      } catch { /* anulohet nga përdoruesi */ }
-    } else {
-      try {
-        await navigator.clipboard.writeText(teksti + ' ' + window.location.href);
-        setMesazhi('📋 U kopjua për t\u2019u ndarë.');
+        const f = document.createElement('textarea');
+        f.value = linku();
+        document.body.appendChild(f);
+        f.select();
+        document.execCommand('copy');
+        document.body.removeChild(f);
+        setMesazhi('📋 Linku u kopjua — ngjite ku do. ✓');
       } catch {
-        setMesazhi('S\u2019u kopjua.');
+        setMesazhi('⚠️ Linku: ' + linku());
       }
     }
   };
@@ -214,8 +236,19 @@ function BiznesiDetaji({ biznesi }) {
                 🌐 Website
               </a>
             )}
-            <button onClick={ndaje} style={butoniVeprimi('#6366f1')}>📤 Ndaje</button>
+            <button onClick={() => setMenujaESharingut((x) => !x)} style={butoniVeprimi(menujaESharingut ? '#4f46e5' : '#6366f1')}>📤 Ndaje</button>
           </div>
+
+          {/* MENUJA E NDAJES — WhatsApp / Kopjo linkun / Browser-i */}
+          {menujaESharingut && (
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+              <button onClick={ndajeTeWhatsApp} style={butoniVeprimi('#25d366')}>💬 Ndaje te WhatsApp</button>
+              <button onClick={kopjoLinkun} style={butoniVeprimi('#0ea5e9')}>📋 Kopjo linkun</button>
+              {typeof navigator.share === 'function' && (
+                <button onClick={ndajeMeBrowser} style={butoniVeprimi('#8e8e93')}>📤 Ndaje me browser-in</button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

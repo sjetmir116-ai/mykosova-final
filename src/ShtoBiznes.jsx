@@ -15,7 +15,7 @@ function ShtoBiznes() {
 
   const [hapi, setHapi] = useState(1);
   const [form, setForm] = useState({
-    emri: '', pershkrimi: '',
+    emri: '', pershkrimi: '', oferta: '',
     kategoria: '',
     qyteti: '', adresa: '', lat: '', lng: '',
     foto: '',
@@ -80,6 +80,7 @@ function ShtoBiznes() {
         lat: form.lat ? Number(form.lat) : null,
         lng: form.lng ? Number(form.lng) : null,
         foto: form.foto,
+        oferta: form.oferta.trim(),
         telefoni: form.telefoni,
         whatsapp: form.whatsapp || form.telefoni,
         website: form.website,
@@ -90,7 +91,7 @@ function ShtoBiznes() {
       });
       regjistroAudit('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria, qyteti: form.qyteti });
       setMesazhi({ tekst: `✅ "${form.emri}" u dërgua për miratim! Do të shfaqet publike sapo admini ta konfirmojë.`, gabim: false });
-      setForm({ emri: '', pershkrimi: '', kategoria: '', qyteti: '', adresa: '', lat: '', lng: '', foto: '', telefoni: '', whatsapp: '', website: '' });
+      setForm({ emri: '', pershkrimi: '', oferta: '', kategoria: '', qyteti: '', adresa: '', lat: '', lng: '', foto: '', telefoni: '', whatsapp: '', website: '' });
       setHapi(1);
     } catch (error) {
       console.error("Gabim gjatë shtimit:", error);
@@ -161,6 +162,7 @@ function ShtoBiznes() {
                 <textarea name="pershkrimi" value={form.pershkrimi} onChange={ndrysho} rows={3} placeholder="Çfarë ofron biznesi?"
                   style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid ' + stiliInputit, backgroundColor: 'transparent', color: stiliTekstit, fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
               </div>
+              {fusha('🎁 Oferta aktuale (opsionale)', 'oferta', 'text', 'p.sh. -20% për të gjithë menynë deri në fundjavë')}
             </>
           )}
 
@@ -228,6 +230,7 @@ function ShtoBiznes() {
                 ['Adresa', form.adresa],
                 ['GPS', form.lat && form.lng ? `${form.lat}, ${form.lng}` : 's\u2019ka'],
                 ['Telefoni', form.telefoni],
+                ['Oferta', form.oferta || '—'],
                 ['Foto', form.foto ? '✅' : 'automatike'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', gap: '10px', fontSize: '13px', padding: '7px 0', borderBottom: `1px solid ${darkMode ? '#2d2d2d' : '#f2f2f7'}` }}>

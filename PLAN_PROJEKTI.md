@@ -122,7 +122,7 @@ src/
 
 ## 4. ROADMAP — FAZAT E PËRKRAHJA
 
-### 🥇 FAZA 1 — PANELI ADMIN ✅ E PËRFUNDUAR (25.08.2026)
+### 🥇 FAZA 1 — PANELI ADMIN ✅ E MBYLLUR ZYRTARE (testuar nga përdoruesi 29.08.2026)
 1. ✅ Hyrja me email/fjalëkalim — hash SHA-256 në koleksionin `adminet` (sistemi i bootstrap-it: admini i parë regjistrohet vetë nga browseri, pa ndryshime në Firebase Console)
 2. ✅ Route `/admin` (react-router-dom) + butoni ⚙️ te navbar; pa sesion → faqja e hyrjes
 3. ✅ **Dashboard**: biznese totale, aprovuar/pendshe, sipas kategorisë, sipas qytetit, mesatarja e yjeve, 5 shtimet e fundit + butoni "Ngarko bazën në cloud"
@@ -132,13 +132,15 @@ src/
 
 **Rezultati:** app-i u kthye i kontrollueshëm nga admini.
 
-### 🥈 FAZA 2 — SHTO BIZNES 2.0 + DETAJI + KOMENTET
-1. Forma e plotë: foto (URL), adresë, telefon, pershkrim, oferta, auto-plotësim GPS (buton "Përdor lokacionin tim")
-2. `BiznesiDetaji.jsx`: çdo biznes hapet në faqe të veten me të gjitha + butonin Telefon ☎️
-3. Komente: përdoruesi shton (emri + tekst + yje), admini i moderon
-4. Ndaje (Share): WhatsApp + kopjo linkun
+**Mbyllja zyrtare (29.08.2026):** përdoruesi e testoi nga browser-i — Ballina hapet pa gabime ✅, kërkimi "kafe" jep rezultate ✅, paneli Admin hapet ✅. Raporti: `RAPORT_FAZA1.md`. Backup: tag `backup-faza1-final-2026-08-29` + branch `backup/faza1-2026-08-29`.
 
-**Rezultati:** përvojë e plotë përdoruesi si Google Maps.
+### 🥈 FAZA 2 — SHTO BIZNES 2.0 + DETAJI + KOMENTET ✅ E PËRFUNDUAR (29.08.2026)
+1. ✅ **Forma e plotë (Shto Biznes 2.0)** — wizard 6 hapa: emri, pershkrim, **oferta** (e shtuar 29.08), kategoria, qyteti, adresa, GPS me buton "Përdor lokacionin tim (GPS)", foto (URL + preview), telefon, WhatsApp, website, review & submit → status `pendshe` + anti-abuz (max 5 biznese/llogari)
+2. ✅ **`BiznesiDetaji.jsx`** — çdo biznes hapet në profilin e vet (nga Lista, Kërkimi, AI, Favorites): foto, vlerësim, pershkrim, oferta, **Telefon ☎️**, WhatsApp, Navigo, Website, Booking, Favorites ❤️, distanca GPS
+3. ✅ **Vlerësimet (Komentet)** — përdoruesi shton (emri + tekst + yje + foto), anti-spam (max 3/përdorues/biznes), "Ndihmoi? 👍", raportim ⚑ + **Moderimi te Paneli Admin** (tabi i ri `⭐ Moderimi`: listë live, stat, kërkim, filtri "vetëm me raporte", fshie/çzero raportet, audit log)
+4. ✅ **Ndaje (Share)** — men me 3 opsione: 💬 Ndaje te WhatsApp, 📋 Kopjo linkun, 📤 Ndaje me browser-in — linku `#biznesi=Emri` hap direkt detajin te personi që e hapt
+
+**Rezultati:** përvoja e plotë përdoruesi si Google Maps. (29.08.2026 — testuar nga agjenti: kompilim + build; prit konfirmimin nga përdoruesi.)
 
 ### 🥉 FAZA 3 — VEÇORITË E LARTË
 1. "Afër meje" — distanca GPS (Haversine) + butoni në Ballina/Harta
@@ -166,7 +168,14 @@ src/
 
 ---
 
-## 6. VENDIMET E MARRA TANI DERI TANI
+## 6. RREGULLAT E PËRDOREUSIT (të respektuara nga agjenti)
+
+1. **Backup para çdo ndryshimi** — tag + branch backup në GitHub para se të preket kodi (i pari: `backup-faza1-final-2026-08-29`)
+2. **Asnjë pagesë pa miratimin e përdoruesit** — çdo veprim që mund të kushtojë (deploy e paguar, plan Firebase, domen, etj.) kërkon miratim të përdoruesit me para. Të gjitha mjetet deri tani: falas (npm, Firebase Spark, GitHub)
+
+---
+
+## 7. VENDIMET E MARRA TANI DERI TANI
 
 1. ✅ MyKosov (repoja tjetër) **nuk u merge-ua** — gjithçka u rishkrua nga zero këtu
 2. ✅ `teDhenat.js` u aktivizua si bazë lokale + Firestore si shtesë live

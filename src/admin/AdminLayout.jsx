@@ -6,6 +6,7 @@ import Hyrja from './Hyrja';
 import Dashboard from './Dashboard';
 import MenaxhoBizneset from './MenaxhoBizneset';
 import Kontenti from './Kontenti';
+import Moderimi from './Moderimi';
 import AuditLog from './AuditLog';
 import BookingsAdmin from './BookingsAdmin';
 import PaketaAdmin from './PaketaAdmin';
@@ -56,6 +57,7 @@ function AdminLayout() {
     { id: 'paketa', emri: '💳 Paketa' },
     { id: 'perdoruesit', emri: '👥 Përdoruesit' },
     { id: 'kontenti', emri: '📦 Kontenti' },
+    { id: 'moderimi', emri: '⭐ Moderimi' },
     { id: 'auditi', emri: '📜 Audit Log' },
   ];
 
@@ -104,6 +106,7 @@ function AdminLayout() {
         {seksioni === 'paketa' && <PaketaAdmin />}
         {seksioni === 'perdoruesit' && <Perdoruesit />}
         {seksioni === 'kontenti' && <Kontenti />}
+        {seksioni === 'moderimi' && <Moderimi />}
         {seksioni === 'auditi' && <AuditLog />}
       </main>
     </div>

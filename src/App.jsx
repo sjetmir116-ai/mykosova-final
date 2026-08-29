@@ -1,6 +1,7 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { AppContext } from './AppContext';
+import { useBizneset } from './useBizneset';
 import HomeScreen from './HomeScreen';
 import HartaScreen from './HartaScreen';
 import ShtoBiznes from './ShtoBiznes';
@@ -17,9 +18,24 @@ import AdminLayout from './admin/AdminLayout';
 
 // Ekranet kryesore të aplikacionit (rruga "/")
 function EkraniKryesor() {
-  const { darkMode, setDarkMode, gjuha, setGjuha, përdoruesi, biznesiIzgjedhur, t } = useContext(AppContext);
+  const { darkMode, setDarkMode, gjuha, setGjuha, përdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, t } = useContext(AppContext);
   const navigate = useNavigate();
   const [ekraniAktual, setEkraniAktual] = useState('ballina');
+  const { bizneset } = useBizneset();
+
+  // LINKU I NDAJUR (Faza 2): #biznesi=Emri → hap direkt detajin e biznesit
+  const linkuTeprocesuar = useRef(false);
+  useEffect(() => {
+    if (linkuTeprocesuar.current || bizneset.length === 0) return;
+    const m = (window.location.hash || '').match(/biznesi=([^&]+)/);
+    if (!m) { linkuTeprocesuar.current = true; return; }
+    const emri = decodeURIComponent(m[1]);
+    const b = bizneset.find((x) => String(x.emri).toLowerCase() === emri.toLowerCase());
+    linkuTeprocesuar.current = true;
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (b) setBiznesiIzgjedhur(b);
+    else setEkraniAktual('lista');
+  }, [bizneset, setBiznesiIzgjedhur]);
 
   // Stilet globale sipas temës
   const stiliNav = darkMode ? '#1c1c1e' : '#ffffff';
