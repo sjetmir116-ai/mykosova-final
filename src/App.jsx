@@ -208,7 +208,7 @@ function EkraniKryesor() {
 
       {/* Footer me linket juridikore */}
       <footer style={{ padding: '14px 20px', borderTop: `1px solid ${vijaNdarse}`, display: 'flex', justifyContent: 'center', gap: '18px', fontSize: '12px', color: '#8e8e93', backgroundColor: darkMode ? '#111827' : '#ffffff', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span>MyKosova 🇽 v1.0.9</span>
+        <span>MyKosova 🇽 v1.0.10</span>
         <button onClick={() => setEkraniAktual('legal')} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
           Privatësia
         </button>
