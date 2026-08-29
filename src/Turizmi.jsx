@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { AppContext } from './AppContext';
 import { useAttraksioneve, QYTETET_E_KOSOVES } from './attraksionet';
 import { meDistanca, formatoDistancm } from './distanca';
+import Foto from './Foto';
 
 // ===== TURIZMI NË KOSOVË 🏔️ (Faza 3 — spec T1, T2) =====
 // Faqe e dedikuar: pikat turistike me foto, histori, aktivitetet + Navigo.
@@ -101,13 +102,13 @@ function Turizmi() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '22px', paddingBottom: '40px' }}>
         {eFiltruar.map((a) => (
           <div key={a.emri} style={{ backgroundColor: stiliKartelës, borderRadius: '18px', overflow: 'hidden', border: `1px solid ${korniza}`, boxShadow: '0 4px 14px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}>
-            {/* FOTOGRAFIA */}
+            {/* FOTOGRAFIA — me fallback gradient+ikonë nëse URL s'ngarkohet */}
             <div style={{ position: 'relative' }}>
-              <img
-                src={a.foto && String(a.foto).startsWith('http') ? a.foto : `https://picsum.photos/seed/${encodeURIComponent(a.emri)}/600/400`}
+              <Foto
+                src={a.foto}
                 alt={a.emri}
-                style={{ width: '100%', height: '170px', objectFit: 'cover', display: 'block', backgroundColor: darkMode ? '#2d2d2d' : '#e5e7eb' }}
-                onError={(e) => { e.target.style.display = 'none'; }}
+                ikona={a.ikona || '📍'}
+                lartesia="170px"
               />
               <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '22px', backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '10px', padding: '4px 8px' }}>
                 {a.ikona || '📍'}

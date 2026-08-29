@@ -3,6 +3,7 @@ import { AppContext } from '../AppContext';
 import { db } from '../firebase';
 import { collection, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { regjistroAudit } from '../audit';
+import Foto from '../Foto';
 
 // ===== MODERIMI I VLERËSIMEVE (Faza 2 — kërkesa: "admini i moderon") =====
 // Liston live gjithë review-et, shtonin raportet, admini i fshin/pastron raportet.
@@ -155,9 +156,8 @@ function Moderimi() {
 
               <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: 1.5, color: stiliTekstit, whiteSpace: 'pre-wrap' }}>{r.tekst}</p>
               {r.foto && String(r.foto).startsWith('http') && (
-                <img src={r.foto} alt="Foto nga përdoruesi"
-                  style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '10px', margin: '6px 0' }}
-                  onError={(e) => (e.target.style.display = 'none')} />
+                <Foto src={r.foto} alt="Foto nga përdoruesi" mode="hiq" lartesia="auto"
+                  style={{ maxHeight: '160px', borderRadius: '10px', margin: '6px 0' }} />
               )}
 
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>

@@ -4,6 +4,7 @@ import { db } from "./firebase";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { useKategorite, useQyteteve } from './useKontenti';
 import { regjistroAudit } from './audit';
+import Foto from './Foto';
 
 // ===== REGJISTRIMI I BIZNESIT — WIZARD me 6 HAPA (spec B18) =====
 // 1.Info 2.Kategori 3.Lokacion+GPS 4.Foto 5.Kontakt 6.Review & Submit
@@ -203,8 +204,7 @@ function ShtoBiznes() {
             <>
               {fusha('Foto (URL i imazhit)', 'foto', 'url', 'https://...  (opsional — nëse s\u2019ka, zgjidhet automatikisht sipas kategorisë)')}
               {form.foto && (
-                <img src={form.foto} alt="Preview" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px' }}
-                  onError={(e) => (e.target.style.display = 'none')} />
+                <Foto src={form.foto} alt="Preview" ikona="📷" lartesia="160px" style={{ borderRadius: '12px', fontSize: '42px' }} />
               )}
               <p style={{ margin: 0, fontSize: '12px', color: '#8e8e93' }}>Opsional — nëse lëreni bosh, platforma zgjedh foto automatikisht sipas kategorisë.</p>
             </>

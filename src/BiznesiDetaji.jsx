@@ -9,6 +9,7 @@ import { regjistroAudit } from './audit';
 import { usePaketa } from './paketa';
 import { useOfertat } from './useOfertat';
 import BookingForm from './BookingForm';
+import Foto from './Foto';
 import { db } from './firebase';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 
@@ -155,7 +156,7 @@ function BiznesiDetaji({ biznesi }) {
       {/* Heroja */}
       <div style={{ backgroundColor: stiliKartelës, borderRadius: '20px', overflow: 'hidden', border: `1px solid ${korniza}`, boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
         <div style={{ position: 'relative' }}>
-          <img src={foto} alt={biznesi.emri} style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
+          <Foto src={foto} alt={biznesi.emri} ikona="🏢" lartesia="220px" />
           <button onClick={ruajFavoritin} title={esIruajtur ? 'Hiq nga favorites' : 'Ruaj te favorites'}
             style={{ position: 'absolute', top: '12px', right: '12px', width: '44px', height: '44px', borderRadius: '50%', border: 'none',
               backgroundColor: 'rgba(255,255,255,0.92)', cursor: 'pointer', fontSize: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
@@ -324,9 +325,8 @@ function BiznesiDetaji({ biznesi }) {
                 </div>
                 <p style={{ margin: '0 0 6px 0', fontSize: '14px', lineHeight: 1.5, color: stiliTekstit }}>{r.tekst}</p>
                 {r.foto && r.foto.startsWith('http') && (
-                  <img src={r.foto} alt="Foto nga përdoruesi"
-                    style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px', margin: '6px 0' }}
-                    onError={(e) => (e.target.style.display = 'none')} />
+                  <Foto src={r.foto} alt="Foto nga përdoruesi" mode="hiq" lartesia="auto"
+                    style={{ maxHeight: '180px', borderRadius: '10px', margin: '6px 0' }} />
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '11px', color: '#8e8e93' }}>

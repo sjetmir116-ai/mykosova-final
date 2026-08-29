@@ -5,6 +5,7 @@ import { gjejFotoAutomatikisht } from './biznesFoto';
 import RatingStars from './RatingStars';
 import { meDistanca, formatoDistancm } from './distanca';
 import QytetiManual from './QytetiManual';
+import Foto from './Foto';
 
 function ListaBizneseve() {
   const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje } = useContext(AppContext);
@@ -101,7 +102,7 @@ function ListaBizneseve() {
               style={{ backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.04)', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.1s' }}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}>
-              <img src={imazhiPërfundimtar} alt={biznesi.emri} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+              <Foto src={imazhiPërfundimtar} alt={biznesi.emri} ikona="🏢" lartesia="180px" />
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
                 <div>
                   <span style={{ display: 'inline-block', padding: '3px 8px', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '5px' }}>{biznesi.kategoria || 'Biznes'}</span>

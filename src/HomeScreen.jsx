@@ -7,6 +7,7 @@ import { useAttraksioneve } from './attraksionet';
 import { meDistanca, formatoDistancm } from './distanca';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import QytetiManual from './QytetiManual';
+import Foto from './Foto';
 
 function HomeScreen({ setEkrani }) {
   const { darkMode, gjuha, setGjuha, userLocation, gpsError, gpsStatus, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
@@ -218,11 +219,12 @@ function HomeScreen({ setEkrani }) {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                   }}
                 >
-                  <img
+                  <Foto
                     src={b.foto && String(b.foto).startsWith('http') ? b.foto : gjejFotoAutomatikisht(b.emri, b.kategoria)}
                     alt={b.emri}
-                    style={{ width: '100%', height: '64px', objectFit: 'cover', display: 'block' }}
-                    onError={(e) => (e.target.style.display = 'none')}
+                    ikona="🏢"
+                    lartesia="64px"
+                    style={{ fontSize: '30px' }}
                   />
                   <div style={{ padding: '8px 10px' }}>
                     <div style={{ fontSize: '12px', fontWeight: '700', color: stiliTekstit, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.emri}</div>
@@ -278,11 +280,12 @@ function HomeScreen({ setEkrani }) {
               onClick={() => setEkrani('turizmi')}
               style={{ minWidth: '150px', maxWidth: '150px', borderRadius: theme.borderRadius.pill, overflow: 'hidden', backgroundColor: stiliKartelës, border: `1px solid ${korniza}`, cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}
             >
-              <img
-                src={a.foto && String(a.foto).startsWith('http') ? a.foto : `https://picsum.photos/seed/${encodeURIComponent(a.emri)}/400/300`}
+              <Foto
+                src={a.foto}
                 alt={a.emri}
-                style={{ width: '100%', height: '84px', objectFit: 'cover', display: 'block' }}
-                onError={(e) => (e.target.style.display = 'none')}
+                ikona={a.ikona || '📍'}
+                lartesia="84px"
+                style={{ fontSize: '40px' }}
               />
               <div style={{ padding: '8px 10px' }}>
                 <div style={{ fontSize: '12.5px', fontWeight: '800', color: stiliTekstit, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.ikona} {a.emri}</div>
