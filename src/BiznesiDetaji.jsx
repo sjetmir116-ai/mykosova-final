@@ -11,6 +11,7 @@ import { useOfertat } from './useOfertat';
 import BookingForm from './BookingForm';
 import Foto from './Foto';
 import { hapLinkun } from './hapLinkun';
+import { ekzekutoNgjarjen } from './analytics';
 import { db } from './firebase';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 
@@ -88,6 +89,7 @@ function BiznesiDetaji({ biznesi }) {
       setYjetReview(5);
       setFotoReview('');
       setMesazhi('✅ Faleminderit! Vlerësimi u ruajt.');
+      ekzekutoNgjarjen('vlerësim', { emri: biznesi.emri, yje: yjetReview });
     } catch (err) {
       console.error('Gabim review:', err);
       setMesazhi('❌ ' + err.message);
@@ -104,6 +106,7 @@ function BiznesiDetaji({ biznesi }) {
   };
 
   const ndajeMeBrowser = async () => {
+    ekzekutoNgjarjen('ndaje', { emri: biznesi.emri, kanali: 'browser' });
     const teksti = `${biznesi.emri} — ${biznesi.qyteti}, Kosovë (MyKosova)`;
     try {
       await navigator.share({ title: biznesi.emri, text: teksti, url: linku() });
@@ -111,11 +114,13 @@ function BiznesiDetaji({ biznesi }) {
   };
 
   const ndajeTeWhatsApp = () => {
+    ekzekutoNgjarjen('ndaje', { emri: biznesi.emri, kanali: 'whatsapp' });
     const teksti = encodeURIComponent(`Po të ndaj një biznes të gjetur te MyKosova: ${biznesi.emri} — ${biznesi.qyteti}, Kosovë 🇽\n${linku()}`);
     window.open(`https://wa.me/?text=${teksti}`, '_blank', 'noopener,noreferrer');
   };
 
   const kopjoLinkun = async () => {
+    ekzekutoNgjarjen('ndaje', { emri: biznesi.emri, kanali: 'link' });
     try {
       await navigator.clipboard.writeText(linku());
       setMesazhi('📋 Linku u kopjua — ngjite ku do. ✓');
@@ -227,14 +232,14 @@ function BiznesiDetaji({ biznesi }) {
           {/* Butonat kryesorë */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {biznesi.telefoni && (
-              <a href={`tel:${biznesi.telefoni}`} onClick={() => numero('klikTelefoni')} style={butoniVeprimi('#3b82f6')}>📞 Telefono</a>
+              <a href={`tel:${biznesi.telefoni}`} onClick={() => { numero('klikTelefoni'); ekzekutoNgjarjen('telefon', { emri: biznesi.emri }); }} style={butoniVeprimi('#3b82f6')}>📞 Telefono</a>
             )}
             {(biznesi.whatsapp || biznesi.telefoni) && (
-              <a href={`https://wa.me/${String(biznesi.whatsapp || biznesi.telefoni).replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" onClick={() => numero('klikWhatsApp')} style={butoniVeprimi('#25d366')}>
+              <a href={`https://wa.me/${String(biznesi.whatsapp || biznesi.telefoni).replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" onClick={() => { numero('klikWhatsApp'); ekzekutoNgjarjen('telefon', { emri: biznesi.emri, kanali: 'whatsapp' }); }} style={butoniVeprimi('#25d366')}>
                 💬 WhatsApp
               </a>
             )}
-            <button onClick={() => { numero('klikNavigo'); hapLinkun(merrMapsUrl(biznesi), merrMapsUrlEmbed(biznesi)); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
+            <button onClick={() => { numero('klikNavigo'); ekzekutoNgjarjen('navigo', { emri: biznesi.emri }); hapLinkun(merrMapsUrl(biznesi), merrMapsUrlEmbed(biznesi)); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
             {biznesi.website && (
               <a href={biznesi.website.startsWith('http') ? biznesi.website : `https://${biznesi.website}`} target="_blank" rel="noopener noreferrer" style={butoniVeprimi('#0ea5e9')}>
                 🌐 Website

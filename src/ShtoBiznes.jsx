@@ -5,6 +5,7 @@ import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { useKategorite, useQyteteve } from './useKontenti';
 import { regjistroAudit } from './audit';
 import Foto from './Foto';
+import { ekzekutoNgjarjen } from './analytics';
 
 // ===== REGJISTRIMI I BIZNESIT — WIZARD me 6 HAPA (spec B18) =====
 // 1.Info 2.Kategori 3.Lokacion+GPS 4.Foto 5.Kontakt 6.Review & Submit
@@ -91,6 +92,7 @@ function ShtoBiznes() {
         krijuarM: new Date().toISOString(),
       });
       regjistroAudit('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria, qyteti: form.qyteti });
+      ekzekutoNgjarjen('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria });
       setMesazhi({ tekst: `✅ "${form.emri}" u dërgua për miratim! Do të shfaqet publike sapo admini ta konfirmojë.`, gabim: false });
       setForm({ emri: '', pershkrimi: '', oferta: '', kategoria: '', qyteti: '', adresa: '', lat: '', lng: '', foto: '', telefoni: '', whatsapp: '', website: '' });
       setHapi(1);

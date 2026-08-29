@@ -8,6 +8,7 @@ import { meDistanca, formatoDistancm } from './distanca';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import QytetiManual from './QytetiManual';
 import Foto from './Foto';
+import { ekzekutoNgjarjen } from './analytics';
 
 function HomeScreen({ setEkrani }) {
   const { darkMode, gjuha, setGjuha, userLocation, gpsError, gpsStatus, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
@@ -56,6 +57,7 @@ function HomeScreen({ setEkrani }) {
   const kërko = (teksti) => {
     const vlera = (teksti ?? tekstiKerkimit).trim();
     if (!vlera) return;
+    ekzekutoNgjarjen('kërkim', { teksti: vlera });
     setVleraKerkimi(vlera);
     setEkrani('kerko');
   };

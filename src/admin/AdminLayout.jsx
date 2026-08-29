@@ -7,6 +7,7 @@ import Dashboard from './Dashboard';
 import MenaxhoBizneset from './MenaxhoBizneset';
 import Kontenti from './Kontenti';
 import Moderimi from './Moderimi';
+import Analitika from './Analitika';
 import AuditLog from './AuditLog';
 import BookingsAdmin from './BookingsAdmin';
 import PaketaAdmin from './PaketaAdmin';
@@ -58,6 +59,7 @@ function AdminLayout() {
     { id: 'perdoruesit', emri: '👥 Përdoruesit' },
     { id: 'kontenti', emri: '📦 Kontenti' },
     { id: 'moderimi', emri: '⭐ Moderimi' },
+    { id: 'analitika', emri: '📊 Analitika' },
     { id: 'auditi', emri: '📜 Audit Log' },
   ];
 
@@ -107,6 +109,7 @@ function AdminLayout() {
         {seksioni === 'perdoruesit' && <Perdoruesit />}
         {seksioni === 'kontenti' && <Kontenti />}
         {seksioni === 'moderimi' && <Moderimi />}
+        {seksioni === 'analitika' && <Analitika />}
         {seksioni === 'auditi' && <AuditLog />}
       </main>
     </div>

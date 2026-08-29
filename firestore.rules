@@ -1,7 +1,9 @@
 rules_version = '2';
 
 // ============================================================
-// MY KOSOVA — FIRESTORE SECURITY RULES v2.0 (AUDITUAR 26.08.2026)
+// MY KOSOVA — FIRESTORE SECURITY RULES v2.1 (AUDITUAR 26.08.2026)
+// v2.1 (29.08.2026): + koleksioni analytics_events (ngjarjet e përdoruesve,
+//         Faza 3.4) — create me validim të mbyllur, read vetëm admin
 //
 // SI TA PUBLIKOSSH: Firebase Console → Firestore → Rules →
 // copiofa TË GJITHË këtë skedar → Publish.
@@ -230,7 +232,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // ===== 12. MBIKËNDREJTJE: çdo collection tjetër = E MBYLLUR =====
+    // ===== 12. ANALITIKA (ngjarjet e përdoruesve — Faza 3.4) =====
+    // ÇDO vizitor (edhe jo i loguar) krijon ngjarje, POR:
+    //  - vetëm fushat e sakta (ngjarja, detajet, koha)
+    //  - vetëm ngjarjet e njohura (listë e mbyllur — jo çdo string)
+    //  - koha DETYROHET të jetë koha e serverit (jo e fabrikuar nga klienti)
+    // Lexim: VETËM admin (Paneli Admin → Analitika). S'ka update nga klienti.
+    match /analytics_events/{id} {
+      allow read: if esAdmin();
+      allow create: if request.resource.data.keys() == ['ngjarja', 'detajet', 'koha']
+        && request.resource.data.ngjarja in ['kërkim', 'hapje_biznesi', 'navigo', 'telefon', 'vlerësim', 'sos', 'ndaje', 'shtim_biznesi']
+        && request.resource.data.koha == request.time;
+      allow update, delete: if esAdmin();
+    }
+
+    // ===== 13. MBIKËNDREJTJE: çdo collection tjetër = E MBYLLUR =====
     match /{document=**} {
       allow read, write: if false;
     }

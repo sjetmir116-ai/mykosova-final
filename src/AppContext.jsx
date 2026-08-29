@@ -3,6 +3,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { merrProfilin } from './auth';
 import { CITET_GPS } from './qyteteGPS';
+import { ekzekutoNgjarjen } from './analytics';
 
 // Kjo linjë e saktë duhet detyrimisht të jetë këtu!
 export const AppContext = createContext();
@@ -14,7 +15,13 @@ export const AppProvider = ({ children }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [gpsError, setGpsError] = useState(null);
   const [përdoruesi, setPërdoruesi] = useState(null); // Profili i përdoruesit të loguar (ose null)
-  const [biznesiIzgjedhur, setBiznesiIzgjedhur] = useState(null); // Biznesi i hapur te Profili (U18) — cdo ekran mund ta hapë
+  const [biznesiIzgjedhur, _setBiznesiIzgjedhur] = useState(null); // Biznesi i hapur te Profili (U18) — cdo ekran mund ta hapë
+  // TRACKIM QENDOR (Analytics — Faza 3.4): çdo hapje biznesi regjistrohet automatikisht,
+  // pa pasur nevojë që çdo ekran ta bëjë vetë
+  const setBiznesiIzgjedhur = (b) => {
+    if (b && b.emri) ekzekutoNgjarjen('hapje_biznesi', { emri: b.emri, qyteti: b.qyteti || '', kategoria: b.kategoria || '' });
+    _setBiznesiIzgjedhur(b);
+  };
   const [afërMeje, setAfërMeje] = useState(false); // "Afër meje" (Faza 3) — renditja sipas distancës GPS
 
   // Sync i përdoruesit me Firebase Auth

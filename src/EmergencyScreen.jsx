@@ -3,6 +3,7 @@ import { AppContext } from './AppContext';
 import { useUrgjencave } from './useKontenti';
 import theme from './theme';
 import { hapLinkun } from './hapLinkun';
+import { ekzekutoNgjarjen } from './analytics';
 
 function EmergencyScreen() {
   const { darkMode, userLocation, t } = useContext(AppContext);
@@ -11,6 +12,7 @@ function EmergencyScreen() {
   const { lista: numratUrgjence } = useUrgjencave();
 
   const handleSOS = () => {
+    ekzekutoNgjarjen('sos', { lat: userLocation?.lat, lng: userLocation?.lng });
     if (userLocation) {
       alert(
         `🚨 ALERTI SOS U AKTIVIZUA!\n\nLokacioni yt live u regjistrua:\nLatitude: ${userLocation.lat}\nLongitude: ${userLocation.lng}\n\nDuke thirrur qendrën e koordinimit...`
