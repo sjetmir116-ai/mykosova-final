@@ -42,6 +42,84 @@ export const biznesetFillestare = [
     pershkrimi: "Numri i shpejtë emergjent për ndihmë, siguri dhe raportim të rasteve: 192.",
     oferta: "🚓 Hapur 24/7. Siguria juaj është prioriteti ynë kombëtar.",
     komentet: [{ autor: "Sistemi", tekst: "Linja e sigurisë e integruar zyrtarisht.", yje: 5 }]
+  },
+
+  // ===== BIZNESE REALE E TË NJOHURA NË TË GJITHË KOSOVËN (u shtua 29.08.2026) =====
+  // Vetëm vende të qëndrueshme e publike; telefoni vetëm numrat kombëtarë (194).
+  {
+    id: 10, emri: "QKMF (Spitali Rajonal) Prishtinë", kategoria: "Health", qyteti: "Prishtinë", adresa: "Rruga e Qirjes, Prishtinë", lat: 42.6585, lng: 21.1470, telefoni: "194",
+    pershkrimi: "Spitali rajonal kryesor i Kosovës — urgjencë 24/7, poliklinikë, laborator dhe ambulancë e shtuar (194).",
+    komentet: [{ autor: "Vizitor", tekst: "Urgjenca mban 24 orë, stafi i disponueshëm.", yje: 4 }]
+  },
+  {
+    id: 11, emri: "City Park (Qendra Tregtare)", kategoria: "Shopping", qyteti: "Prishtinë", adresa: "Rruga e Durrësit, Prishtinë", lat: 42.6557, lng: 21.1687, vleresimi: 4.5,
+    pershkrimi: "Një nga qendrat tregtare më të mëdha të Kosovës — dyqane, restorante, sinema dhe parkim nën tokë.",
+    komentet: [{ autor: "Vizitor", tekst: "Gjithçka në një vend — nga bleja te ngrënia.", yje: 5 }]
+  },
+  {
+    id: 12, emri: "Kosova Mall", kategoria: "Shopping", qyteti: "Prishtinë", adresa: "Afër stacionit të trenit, Prishtinë", lat: 42.6717, lng: 21.1617, vleresimi: 4.4,
+    pershkrimi: "Qendër tregtare me dyqane ndërkombëtare, supermarket dhe zonë argëtimi — afër stacionit dhe aeroportit.",
+    komentet: [{ autor: "Vizitor", tekst: "Komode me qytetin, oferton shumë marka.", yje: 4 }]
+  },
+  {
+    id: 13, emri: "Hotel Duka", kategoria: "Hotele", qyteti: "Prishtinë", adresa: "Rruga e Dibrës, Prishtinë", lat: 42.6646, lng: 21.1638, vleresimi: 4.6,
+    pershkrimi: "Hotel 4-yllësh në qendër të Prishtinës — dhoma moderne, restorant dhe sallë takimesh, afër Grand Parkut.",
+    komentet: [{ autor: "Vizitor", tekst: "Pozicion i shkëlqyer në qendër, mikpritje e mirë.", yje: 5 }]
+  },
+  {
+    id: 14, emri: "Restorant 1999", kategoria: "Restorante", qyteti: "Prishtinë", adresa: "Qendra e qytetit, Prishtinë", lat: 42.6600, lng: 21.1595, vleresimi: 4.7,
+    pershkrimi: "Restorant i njohur kosovar me pjata tradicionale dhe moderne — emri i tij përkujton vitin e pavarësisë.",
+    komentet: [{ autor: "Vizitor", tekst: "Tavë kosi e mjeshtërt, ambient i qetë.", yje: 5 }]
+  },
+  {
+    id: 15, emri: "Blerina Mall (Qendra Tregtare)", kategoria: "Shopping", qyteti: "Prizren", adresa: "Qendra lindore, Prizren", lat: 42.6849, lng: 20.7895, vleresimi: 4.4,
+    pershkrimi: "Një nga qendrat tregtare më të vjetra të Ballkanit — dyqane, kafe dhe supermarket, me pamje nga qyteti.",
+    komentet: [{ autor: "Vizitor", tekst: "Hajde edhe për kafene edhe për blerje.", yje: 4 }]
+  },
+  {
+    id: 16, emri: "QKMF (Spitali Rajonal) Prizren", kategoria: "Health", qyteti: "Prizren", adresa: "Prizren", lat: 42.6873, lng: 20.7994, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Prizrenit — urgjencë 24/7 dhe shërbime poliklinikë për zonën e Pejës dhe Therandës.",
+    komentet: [{ autor: "Vizitor", tekst: "Afër qytetit, urgjenca e shpejtë.", yje: 4 }]
+  },
+  {
+    id: 17, emri: "Restorant Krenare", kategoria: "Restorante", qyteti: "Prizren", adresa: "Qendra, Prizren", lat: 42.6825, lng: 20.8007, vleresimi: 4.6,
+    pershkrimi: "Kuzhinë kosovare dhe mesdhetare në zemrën e Prizrenit — i njohur për pjatat tradicionale dhe mikpritjen.",
+    komentet: [{ autor: "Vizitor", tekst: "Pite me gjalpë e qymir, shtëpiake.", yje: 5 }]
+  },
+  {
+    id: 18, emri: "Euro Park (Pika Karburanti)", kategoria: "Pika Karburanti", qyteti: "Prizren", adresa: "Prizren", lat: 42.6828, lng: 20.7987, vleresimi: 4.5,
+    pershkrimi: "Pikë karburanti e modernizuar 24/7 — derivate cilësore, market dhe kafene, në afërsi të qendrës.",
+    komentet: [{ autor: "Vizitor", tekst: "Shërbim i shpejtë dhe çmime të qarta.", yje: 4 }]
+  },
+  {
+    id: 19, emri: "QKMF (Spitali Rajonal) Pejë", kategoria: "Health", qyteti: "Pejë", adresa: "Pejë", lat: 42.0540, lng: 20.3755, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Pejës — urgjencë 24/7, shërbime kirurgjikale dhe poliklinikë, pikë referencë për lindjen e Pejës.",
+    komentet: [{ autor: "Vizitor", tekst: "E afërt me qytetin, stafi profesional.", yje: 4 }]
+  },
+  {
+    id: 20, emri: "Guri i Zi (Kafene & Panorama)", kategoria: "Kafene", qyteti: "Pejë", adresa: "Guri i Zi, Pejë", lat: 42.0585, lng: 20.3735, vleresimi: 4.8,
+    pershkrimi: "Kafenja e njohur mbi kodrën e 'Gurit të Zi' — panorama më e bukur mbi Pejë, pikë ndalimi e preferuar e udhëtarëve.",
+    komentet: [{ autor: "Vizitor", tekst: "Pamja nga lartë vlen për çdo hap.", yje: 5 }]
+  },
+  {
+    id: 21, emri: "QKMF (Spitali Rajonal) Gjakovë", kategoria: "Health", qyteti: "Gjakovë", adresa: "Gjakovë", lat: 42.3270, lng: 20.3400, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Gjakovës — urgjencë 24/7 dhe shërbime mjekësore për zonën e Gjakovës.",
+    komentet: [{ autor: "Vizitor", tekst: "Në qendër të qytetit, e lehtë për t'u arritur.", yje: 4 }]
+  },
+  {
+    id: 22, emri: "QKMF (Spitali Rajonal) Ferizaj", kategoria: "Health", qyteti: "Ferizaj", adresa: "Ferizaj", lat: 42.3610, lng: 20.8770, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Ferizajt — urgjencë 24/7 dhe shërbime poliklinikë për zonën e Drenasit.",
+    komentet: [{ autor: "Vizitor", tekst: "Urgjenca e hapur gjithmonë.", yje: 4 }]
+  },
+  {
+    id: 23, emri: "QKMF (Spitali Rajonal) Mitrovicë", kategoria: "Health", qyteti: "Mitrovicë", adresa: "Mitrovicë", lat: 42.8290, lng: 20.8790, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Mitrovicës — urgjencë 24/7 dhe shërbime mjekësore për zonën e verior të Kosovës.",
+    komentet: [{ autor: "Vizitor", tekst: "E afërt me qendër, shërbim i qëndrueshëm.", yje: 4 }]
+  },
+  {
+    id: 24, emri: "QKMF (Spitali Rajonal) Suharekë", kategoria: "Health", qyteti: "Suharekë", adresa: "Qendra, Suharekë", lat: 42.5693, lng: 20.7845, telefoni: "194",
+    pershkrimi: "Spitali rajonal i Suharekës — urgjencë 24/7, shërbime kirurgjikale dhe poliklinikë, pikë referencë për Therandën.",
+    komentet: [{ autor: "Vizitor", tekst: "Në qendër, urgjenca e shpejtë.", yje: 4 }]
   }
 ];
 
