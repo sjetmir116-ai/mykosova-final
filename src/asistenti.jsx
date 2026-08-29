@@ -145,7 +145,10 @@ async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = [
     const teksti = teAfertat
       .map((x, i) => `${i + 1}. ${x.b.emri} — ${x.d < 1 ? Math.round(x.d * 1000) + ' m' : x.d.toFixed(1) + ' km'}`)
       .join('\n');
-    return { tekst: `📍 Më afër te ju (nga ${userLocation.lat.toFixed(3)}, ${userLocation.lng.toFixed(3)}):\n${teksti}`, bizneset: teAfertat.map((x) => x.b) };
+    const pikëbaza = userLocation.burimi === 'gps'
+      ? `📍 Më afër te ju (pozicioni juaj real: ${userLocation.lat.toFixed(3)}, ${userLocation.lng.toFixed(3)}):\n`
+      : `📍 Më afër nga qendra e ${userLocation.qyteti} (pikë MANUAL — jo GPS):\n`;
+    return { tekst: pikëbaza + teksti, bizneset: teAfertat.map((x) => x.b) };
   }
 
   // Kërkim bazë: fjalë kyçe (me sinonime) + qytetet e përmendura

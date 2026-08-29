@@ -179,8 +179,8 @@ function BiznesiDetaji({ biznesi }) {
               </span>
             )}
             {distanca != null && (
-              <span style={{ fontSize: '11px', fontWeight: '800', color: userLocation?.fallback ? '#b45309' : '#8e8e93' }}>
-                📍 {formatoDistancm(distanca)} {userLocation?.fallback ? 'nga Prishtina (demo — jo pozicioni juaj)' : 'nga ju'}
+              <span style={{ fontSize: '11px', fontWeight: '800', color: userLocation?.burimi === 'gps' ? '#8e8e93' : '#b45309' }}>
+                📍 {formatoDistancm(distanca)} {userLocation?.burimi === 'gps' ? 'nga ju' : `nga ${userLocation?.qyteti} (MANUAL — jo GPS)`}
               </span>
             )}
           </div>

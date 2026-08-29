@@ -115,8 +115,8 @@ function SmartSearch() {
             </button>
           ))}
           {renditja === 'distanca' && userLocation && (
-            <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '700' }}>
-              Afër: {userLocation.lat.toFixed(3)}, {userLocation.lng.toFixed(3)}{userLocation.fallback ? ' (bazë Prishtina — GPS i refuzuar)' : ' (GPS)' }
+            <span style={{ fontSize: '11px', color: userLocation.burimi === 'gps' ? '#16a34a' : '#d97706', fontWeight: '700' }}>
+              Afër: {userLocation.lat.toFixed(3)}, {userLocation.lng.toFixed(3)} {userLocation.burimi === 'gps' ? '(GPS real)' : `(MANUAL: qendra e ${userLocation.qyteti} — jo GPS)`}
             </span>
           )}
         </div>

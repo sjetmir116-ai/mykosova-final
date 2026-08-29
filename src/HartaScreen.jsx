@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { AppContext } from './AppContext';
 
 function HartaScreen({ setEkrani }) {
-  const { darkMode, userLocation, gpsError, afërMeje, setAfërMeje } = useContext(AppContext);
+  const { darkMode, userLocation, gpsStatus, afërMeje, setAfërMeje } = useContext(AppContext);
 
   // Koordinatat zyrtare: nëse nuk ka kapur GPS, vendoset default lokacioni i fundit
   const lat = userLocation ? userLocation.lat : 42.3590;
@@ -19,12 +19,14 @@ function HartaScreen({ setEkrani }) {
       {/* Paneli i koordinatave GPS */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: darkMode ? '#1f2937' : '#ffffff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
         <div>
-          <span style={{ fontWeight: 'bold', color: darkMode ? '#ffffff' : '#1f2937' }}>📍 Lokacioni Juaj</span>
+          <span style={{ fontWeight: 'bold', color: darkMode ? '#ffffff' : '#1f2937' }}>
+            📍 {userLocation?.burimi === 'gps' ? 'Lokacioni juaj (GPS real)' : userLocation?.burimi === 'manual' ? `Qendra e ${userLocation.qyteti} (MANUAL — jo GPS)` : 'Kosova (s\u2019ka GPS — hartë e përgjithshme)'}
+          </span>
           <br />
           <small style={{ color: '#9ca3af' }}>Gjerësia: {lat.toFixed(4)}, Gjatësia: {lng.toFixed(4)}</small>
         </div>
-        <span style={{ backgroundColor: gpsError ? '#fef2f2' : '#e6f4ea', color: gpsError ? '#dc2626' : '#137333', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
-          {gpsError ? 'Gabim GPS' : '● Aktiv'}
+        <span style={{ backgroundColor: userLocation?.burimi === 'gps' ? '#e6f4ea' : userLocation?.burimi === 'manual' ? '#eff6ff' : gpsStatus === 'kekerkuese' ? '#eff6ff' : '#fef2f2', color: userLocation?.burimi === 'gps' ? '#137333' : userLocation?.burimi === 'manual' ? '#1d4ed8' : gpsStatus === 'kekerkuese' ? '#1d4ed8' : '#dc2626', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
+          {userLocation?.burimi === 'gps' ? '● GPS aktiv' : userLocation?.burimi === 'manual' ? '🏙️ MANUAL' : gpsStatus === 'kekerkuese' ? '⏳ Po kërkon...' : '⚠️ S\u2019ka GPS'}
         </span>
         {/* AFËR MEJE (Faza 3) — nga harta te lista e renditur sipas distancës */}
         <button

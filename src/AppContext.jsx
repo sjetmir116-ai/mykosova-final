@@ -1,7 +1,8 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useRef } from 'react';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { merrProfilin } from './auth';
+import { CITET_GPS } from './qyteteGPS';
 
 // Kjo linjë e saktë duhet detyrimisht të jetë këtu!
 export const AppContext = createContext();
@@ -124,54 +125,88 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ===== GPS me FALLBACK (Prishtina qendër) + riprovim =====
-  // Nëse browser-i/iframe-i refuzon lokacionin, app-i nuk shkatërrohet:
-  // përdor qendrën e Prishtinës si bazë (distanctat/afërsia vazhdojnë të punojnë)
-  const BAZA_DEFAULT = { lat: 42.6627, lng: 21.1655 };
+  // ===== GPS — FAZA 3 v2: VETËM lokacioni real + përditësim i vazhdueshëm =====
+  // userLocation: { lat, lng, burimi: 'gps' | 'manual', qyteti, koha }
+  //  - 'gps'    → koordinata REALE nga pajisja (watchPosition — përditësohet kur lëviz)
+  //  - 'manual' → qendra e qytetit të zgjedhur nga përdoruesi (vetëm kur GPS refuzohet)
+  // Nëse GPS nuk lejohet: userLocation = null → distancat nuk llogariten, UI thotë qartë
+  // që lokacioni real s'është i disponueshëm. S'ka më auto-fallback te Prishtina.
+  const [gpsStatus, setGpsStatus] = useState('kekerkuese'); // 'kekerkuese' | 'aktiv' | 'refuzuar'
+  const watchIdRef = useRef(null);
 
-  const gabimiGPS = (error) => {
-    switch (error?.code) {
-      case 1: return 'GPS u refuzua nga browser-i — duke përdorur Prishtinën si bazë. Lejo lokacionin dhe shtyp "Sërish".';
-      case 2: return 'Pozicioni nuk u gjeta — duke përdorur Prishtinën si bazë.';
-      case 3: return 'GPS s\u2019u përgjigj në kohë — duke përdorur Prishtinën si bazë.';
-      default: return 'GPS gabim — duke përdorur Prishtinën si bazë.';
+  const ndaloGPS = () => {
+    if (watchIdRef.current != null && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
   };
 
+  const gabimiGPS = (error) => {
+    switch (error?.code) {
+      case 1: return 'GPS u REFUZUA nga browser-i — lokacioni real s\u2019është i disponueshëm. Lejohu lokacionin ose zgjidh qytetin ku jeni (MANUAL).';
+      case 2: return 'Pozicioni nuk u gjeta — provoj përsëri ose zgjidh qytetin ku jeni (MANUAL).';
+      case 3: return 'GPS s\u2019u përgjigj në kohë — provoj përsëri ose zgjidh qytetin ku jeni (MANUAL).';
+      default: return 'Gabim GPS — provoj përsëri ose zgjidh qytetin ku jeni (MANUAL).';
+    }
+  };
+
+  // watchPosition (JO getCurrentPosition): përditëson lokacionin VAZHDOESISHT —
+  // kur përdoruesi lëviz/qytet, distancat ndryshojnë automatikisht.
   const kërkoGPS = () => {
-    if (!navigator.geolocation) {
-      setGpsError('Geolocation nuk mbështetet te ky browser — bazë: Prishtina.');
-      setUserLocation({ ...BAZA_DEFAULT, fallback: true });
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGpsStatus('refuzuar');
+      setGpsError('Geolocation nuk mbështetet nga ky browser. Zgjidh qytetin ku jeni (MANUAL).');
       return;
     }
+    setGpsStatus('kekerkuese');
     setGpsError(null);
-    // Derisa po kërkoj: s'ka pozicion → UI tregon "po kërkoj" (JO fallback)
-    setUserLocation(null);
-    navigator.geolocation.getCurrentPosition(
-      (position) => setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
+    ndaloGPS();
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          burimi: 'gps',
+          qyteti: null,
+          koha: new Date(),
+        });
+        setGpsStatus('aktiv');
+        setGpsError(null);
+      },
       (error) => {
-        // Fallback vetëm si rezervë — gjithmonë i shënuar qartë si "demo"
-        setUserLocation({ ...BAZA_DEFAULT, fallback: true });
+        ndaloGPS();
+        setGpsStatus('refuzuar');
         setGpsError(gabimiGPS(error));
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
 
   useEffect(() => {
     kërkoGPS();
+    return () => ndaloGPS();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // PIKA E REFERENCËS MANUALE — kur GPS-i refuzohet, përdoruesi zgjedh qytetin e vet.
+  // Shënohet gjithmonë "MANUAL" në UI — kurrë paraqitet si lokacioni real.
+  const zgjidhQytetinManual = (emri) => {
+    const c = CITET_GPS.find((x) => x.emri === emri);
+    if (!c) return;
+    ndaloGPS();
+    setUserLocation({ lat: c.lat, lng: c.lng, burimi: 'manual', qyteti: c.emri, koha: new Date() });
+    setGpsStatus('refuzuar');
+  };
+
+  // true VETËM kur browser-i dha pozicionin REAL (watchPosition aktiv)
+  const esLokacioniReal = !!(userLocation && userLocation.burimi === 'gps');
 
   const t = (fusha) => {
     return perkthimet[gjuha][fusha] || fusha;
   };
 
-  // true vetëm kur GPS-i i dhënoi browser-i pozicionin REAL të përdoruesit
-  const esLokacioniReal = !!(userLocation && !userLocation.fallback);
-
   return (
-    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, riprovoGPS: kërkoGPS, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal, t }}>
+    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, gpsStatus, riprovoGPS: kërkoGPS, zgjidhQytetinManual, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal, t }}>
       {children}
     </AppContext.Provider>
   );

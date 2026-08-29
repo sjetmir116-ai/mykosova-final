@@ -4,9 +4,10 @@ import { useBizneset, merrMapsUrl } from './useBizneset';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import RatingStars from './RatingStars';
 import { meDistanca, formatoDistancm } from './distanca';
+import QytetiManual from './QytetiManual';
 
 function ListaBizneseve() {
-  const { setBiznesiIzgjedhur, userLocation, gpsError, riprovoGPS, afërMeje, setAfërMeje } = useContext(AppContext);
+  const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje } = useContext(AppContext);
   const { bizneset, loading } = useBizneset();
   const [kerkimi, setKerkimi] = useState('');
 
@@ -58,26 +59,33 @@ function ListaBizneseve() {
         </button>
       </div>
 
-      {/* Statusi i GPS-it kur është aktiv "Afër meje" — 3 gjendje të ndara qartë */}
+      {/* Statusi i GPS-it kur është aktiv "Afër meje" — gjendje të ndara qartë */}
       {afërMeje && (
         <div style={{
           marginBottom: '16px', padding: '12px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: '600',
           display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
-          backgroundColor: userLocation ? (userLocation.fallback ? '#fff7ed' : '#e6f4ea') : '#eff6ff',
-          color: userLocation ? (userLocation.fallback ? '#92400e' : '#137333') : '#1d4ed8',
-          border: '1px solid ' + (userLocation ? (userLocation.fallback ? '#f59e0b60' : '#13733340') : '#3b82f640'),
+          backgroundColor: userLocation?.burimi === 'gps' ? '#e6f4ea' : userLocation?.burimi === 'manual' ? '#eff6ff' : gpsStatus === 'kekerkuese' ? '#eff6ff' : '#fff7ed',
+          color: userLocation?.burimi === 'gps' ? '#137333' : userLocation?.burimi === 'manual' ? '#1d4ed8' : gpsStatus === 'kekerkuese' ? '#1d4ed8' : '#92400e',
+          border: '1px solid ' + (userLocation?.burimi === 'gps' ? '#13733340' : userLocation?.burimi === 'manual' ? '#3b82f640' : gpsStatus === 'kekerkuese' ? '#3b82f640' : '#f59e0b60'),
         }}>
-          {userLocation ? (userLocation.fallback ? (
-            <>⚠️ GPS u refuzua — renditje DEMO nga qendra e PRISHTINËS, <b>jo pozicioni juaj real</b>. Distanca s'janë reale.</>
+          {userLocation?.burimi === 'gps' ? (
+            <>✅ 📍 Renditur sipas lokacionit tuaj <b>REAL</b>: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)} · aktualizuar {userLocation.koha?.toLocaleTimeString('sq-AL')} (përditësohet vetë kur lëvizni)</>
+          ) : userLocation?.burimi === 'manual' ? (
+            <>🏙️ Pika e referencës: qendra e <b>{userLocation.qyteti}</b> (MANUAL — jo GPS). Distanca janë reale nga kjo pikë, por jo pozicioni juaj.</>
+          ) : gpsStatus === 'kekerkuese' ? (
+            <>⏳ Duke kërkuar lokacionin tuaj real... (distancat nuk llogariten derisa të lejohet)</>
           ) : (
-            <>✅ 📍 Renditur sipas lokacionit tuaj <b>real</b>: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</>
-          )) : (
-            <>⏳ Duke kërkuar lokacionin tuaj GPS... (pa leje, distancat nuk llogariten)</>
+            <>
+              ⛔ <b>Lokacioni real s'është i disponueshëm</b> — distancat nuk llogariten. {gpsError && <span style={{ fontWeight: '400' }}>({gpsError})</span>}
+            </>
           )}
-          {gpsError && (
+          {(userLocation?.burimi === 'manual' || (gpsStatus === 'refuzuar' && !userLocation)) && (
             <button onClick={() => riprovoGPS()} style={{ padding: '4px 12px', borderRadius: '10px', border: '1px solid currentColor', backgroundColor: 'transparent', color: 'inherit', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               🔄 Lejo lokacionin
             </button>
+          )}
+          {gpsStatus === 'refuzuar' && userLocation?.burimi !== 'manual' && (
+            <QytetiManual />
           )}
         </div>
       )}
@@ -106,8 +114,8 @@ function ListaBizneseve() {
                   </div>
                   <p style={{ margin: '8px 0 5px 0', color: '#6b7280', fontSize: '14px' }}>📍 {biznesi.qyteti}{biznesi.adresa ? ` — ${biznesi.adresa}` : ''}</p>
                   {afërMeje && biznesi.distanca != null && (
-                    <span style={{ display: 'inline-block', padding: '3px 8px', backgroundColor: userLocation?.fallback ? '#fff7ed' : '#eff6ff', color: userLocation?.fallback ? '#b45309' : '#1d4ed8', borderRadius: '4px', fontSize: '12px', fontWeight: '800', marginBottom: '5px' }}>
-                      📍 {formatoDistancm(biznesi.distanca)} {userLocation?.fallback ? 'nga Prishtina (demo)' : 'nga ju'}
+                    <span style={{ display: 'inline-block', padding: '3px 8px', backgroundColor: userLocation?.burimi === 'gps' ? '#eff6ff' : '#fff7ed', color: userLocation?.burimi === 'gps' ? '#1d4ed8' : '#b45309', borderRadius: '4px', fontSize: '12px', fontWeight: '800', marginBottom: '5px' }}>
+                      📍 {formatoDistancm(biznesi.distanca)} {userLocation?.burimi === 'gps' ? 'nga ju' : `nga ${userLocation?.qyteti} (MANUAL)`}
                     </span>
                   )}
                   {biznesi.oferta ? (

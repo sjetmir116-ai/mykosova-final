@@ -191,8 +191,8 @@ function ShtoBiznes() {
               </div>
               {userLocation && (
                 <button type="button" onClick={() => setForm({ ...form, lat: userLocation.lat.toFixed(6), lng: userLocation.lng.toFixed(6) })}
-                  style={{ alignSelf: 'flex-start', backgroundColor: 'none', border: '1px solid #3b82f6', color: '#3b82f6', padding: '9px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
-                  📍 Përdor lokacionin tim (GPS)
+                  style={{ alignSelf: 'flex-start', backgroundColor: 'none', border: '1px solid ' + (userLocation.burimi === 'gps' ? '#3b82f6' : '#d97706'), color: userLocation.burimi === 'gps' ? '#3b82f6' : '#d97706', padding: '9px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
+                  📍 {userLocation.burimi === 'gps' ? 'Përdor lokacionin tim (GPS real)' : `Përdor ${userLocation.qyteti} (MANUAL — jo GPS)`}
                 </button>
               )}
             </>
