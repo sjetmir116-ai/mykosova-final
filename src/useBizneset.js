@@ -53,3 +53,12 @@ export function merrMapsUrl(biznesi) {
   const pyetja = [biznesi.emri, biznesi.adresa, biznesi.qyteti, 'Kosovë'].filter(Boolean).join(', ');
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pyetja)}`;
 }
+
+// Lidhja EMBED (lejohet brenda iframe/paneli — përdoret kur shtesa 1 bllokohet)
+export function merrMapsUrlEmbed(biznesi) {
+  if (biznesi.lat && biznesi.lng) {
+    return `https://www.google.com/maps?q=${biznesi.lat},${biznesi.lng}&z=15&output=embed`;
+  }
+  const pyetja = [biznesi.emri, biznesi.adresa, biznesi.qyteti, 'Kosovë'].filter(Boolean).join(', ');
+  return `https://www.google.com/maps?q=${encodeURIComponent(pyetja)}&output=embed`;
+}

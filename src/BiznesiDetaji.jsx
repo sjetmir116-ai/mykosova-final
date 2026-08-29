@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { AppContext } from './AppContext';
-import { merrMapsUrl } from './useBizneset';
+import { merrMapsUrl, merrMapsUrlEmbed } from './useBizneset';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import { useReviews, shtoReview, raportoReview, votoNdermues } from './useReviews';
 import { useFavorites } from './useFavorites';
@@ -234,7 +234,7 @@ function BiznesiDetaji({ biznesi }) {
                 💬 WhatsApp
               </a>
             )}
-            <button onClick={() => { numero('klikNavigo'); hapLinkun(merrMapsUrl(biznesi)); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
+            <button onClick={() => { numero('klikNavigo'); hapLinkun(merrMapsUrl(biznesi), merrMapsUrlEmbed(biznesi)); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
             {biznesi.website && (
               <a href={biznesi.website.startsWith('http') ? biznesi.website : `https://${biznesi.website}`} target="_blank" rel="noopener noreferrer" style={butoniVeprimi('#0ea5e9')}>
                 🌐 Website

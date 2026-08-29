@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { AppContext } from './AppContext';
-import { useBizneset, merrMapsUrl } from './useBizneset';
+import { useBizneset, merrMapsUrl, merrMapsUrlEmbed } from './useBizneset';
 import { gjeneroItinerarin } from './useTrips';
 import { useAttraksioneve } from './attraksionet';
 import { distancaKm } from './distanca';
@@ -362,7 +362,7 @@ function Asistenti() {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                           <button
-                            onClick={() => hapLinkun(merrMapsUrl(b))}
+                            onClick={() => hapLinkun(merrMapsUrl(b), merrMapsUrlEmbed(b))}
                             style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}
                           >
                             Navigo 🧭

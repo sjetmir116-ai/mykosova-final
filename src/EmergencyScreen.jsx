@@ -26,7 +26,10 @@ function EmergencyScreen() {
   const korniza = darkMode ? '#2d2d2d' : '#e5e7eb';
   const stiliTekstit = darkMode ? '#ffffff' : '#000000';
 
-  const hapNgaGjuha = (pyetja) => hapLinkun(`https://www.google.com/maps/search/${encodeURIComponent(pyetja)}`);
+  const hapNgaGjuha = (pyetja) => hapLinkun(
+    `https://www.google.com/maps/search/${encodeURIComponent(pyetja)}`,
+    `https://www.google.com/maps?q=${encodeURIComponent(pyetja)}&output=embed`
+  );
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', paddingBottom: '100px', fontFamily: 'sans-serif', color: stiliTekstit }}>

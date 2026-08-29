@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from './AppContext';
-import { useBizneset, merrMapsUrl } from './useBizneset';
+import { useBizneset, merrMapsUrl, merrMapsUrlEmbed } from './useBizneset';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import RatingStars from './RatingStars';
 import { meDistanca, formatoDistancm } from './distanca';
@@ -124,7 +124,7 @@ function ListaBizneseve() {
                     <p style={{ margin: '4px 0 0 0', color: '#16a34a', fontSize: '13px', fontWeight: '600' }}>{biznesi.oferta}</p>
                   ) : null}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); hapLinkun(merrMapsUrl(biznesi)); }} style={{ width: '100%', backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '15px' }}>
+                <button onClick={(e) => { e.stopPropagation(); hapLinkun(merrMapsUrl(biznesi), merrMapsUrlEmbed(biznesi)); }} style={{ width: '100%', backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '15px' }}>
                   Navigo 🧭
                 </button>
               </div>

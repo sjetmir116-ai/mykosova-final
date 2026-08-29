@@ -146,7 +146,7 @@ function Turizmi() {
               )}
 
               <button
-                onClick={() => hapLinkun(`https://www.google.com/maps?q=${a.lat},${a.lng}`)}
+                onClick={() => hapLinkun(`https://www.google.com/maps?q=${a.lat},${a.lng}`, `https://www.google.com/maps?q=${a.lat},${a.lng}&z=15&output=embed`)}
                 style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: '12px', border: 'none', backgroundColor: '#3b82f6', color: '#fff', fontWeight: '800', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 🧭 Navigo te {a.emri.split(' ').slice(0, 2).join(' ')}

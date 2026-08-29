@@ -91,7 +91,7 @@ function Zbulo({ filtriQyteti, setFiltriQyteti, stiliKartelës, korniza, stiliTe
                 <p style={{ margin: '4px 0', fontSize: '12px', color: '#8e8e93' }}>📍 {a.qyteti} · {a.kategoria}</p>
                 <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: stiliTekstit, lineHeight: 1.5 }}>{a.pershkrimi}</p>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.emri + ' ' + a.qyteti + ' Kosovë')}`)}
+                  <button onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.emri + ' ' + a.qyteti + ' Kosovë')}`, `https://www.google.com/maps?q=${encodeURIComponent(a.emri + ' ' + a.qyteti + ' Kosovë')}&output=embed`)}
                     style={{ flex: 1, backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                     Navigo 🧭
                   </button>
@@ -129,7 +129,7 @@ function Eventet({ stiliKartelës, korniza, stiliTekstit }) {
                 </p>
                 {e.pershkrimi && <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: stiliTekstit, lineHeight: 1.5 }}>{e.pershkrimi}</p>}
                 <button
-                  onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((e.qyteti || '') + ' Kosovë')}`)}
+                  onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((e.qyteti || '') + ' Kosovë')}`, `https://www.google.com/maps?q=${encodeURIComponent((e.qyteti || '') + ' Kosovë')}&output=embed`)}
                   style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '12px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
                   Shiko lokacionin 🧭
                 </button>
