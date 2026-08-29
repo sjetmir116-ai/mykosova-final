@@ -6,6 +6,7 @@ import { useTrips, gjeneroItinerarin } from './useTrips';
 import { useQyteteve } from './useKontenti';
 import { useMoti, esMotIMire, QYTETE_KOORDINATA } from './moti';
 import { useEventet, formatoDate, esNeTeArdhmen } from './eventet';
+import { hapLinkun } from './hapLinkun';
 
 // ===== MY KOSOVA TRIP (spec T1-T8) =====
 // 3 seksione: Zbulo (qytete + atraksione) · Planner (N-ditore automatik) · Tripat e mi
@@ -90,7 +91,7 @@ function Zbulo({ filtriQyteti, setFiltriQyteti, stiliKartelës, korniza, stiliTe
                 <p style={{ margin: '4px 0', fontSize: '12px', color: '#8e8e93' }}>📍 {a.qyteti} · {a.kategoria}</p>
                 <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: stiliTekstit, lineHeight: 1.5 }}>{a.pershkrimi}</p>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.emri + ' ' + a.qyteti + ' Kosovë')}`, '_blank')}
+                  <button onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.emri + ' ' + a.qyteti + ' Kosovë')}`)}
                     style={{ flex: 1, backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '9px', borderRadius: '10px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                     Navigo 🧭
                   </button>
@@ -128,7 +129,7 @@ function Eventet({ stiliKartelës, korniza, stiliTekstit }) {
                 </p>
                 {e.pershkrimi && <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: stiliTekstit, lineHeight: 1.5 }}>{e.pershkrimi}</p>}
                 <button
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((e.qyteti || '') + ' Kosovë')}`, '_blank')}
+                  onClick={() => hapLinkun(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((e.qyteti || '') + ' Kosovë')}`)}
                   style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '12px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
                   Shiko lokacionin 🧭
                 </button>

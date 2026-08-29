@@ -4,6 +4,7 @@ import { useBizneset, merrMapsUrl } from './useBizneset';
 import { gjeneroItinerarin } from './useTrips';
 import { useAttraksioneve } from './attraksionet';
 import { distancaKm } from './distanca';
+import { hapLinkun } from './hapLinkun';
 import { merrMoti, esMotIMire, QYTETE_KOORDINATA } from './moti';
 
 // ===== MOTORI I DITURIVE: AI funksional që përgjigjet mbi të dhënat reale =====
@@ -361,7 +362,7 @@ function Asistenti() {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                           <button
-                            onClick={() => window.open(merrMapsUrl(b), '_blank')}
+                            onClick={() => hapLinkun(merrMapsUrl(b))}
                             style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}
                           >
                             Navigo 🧭

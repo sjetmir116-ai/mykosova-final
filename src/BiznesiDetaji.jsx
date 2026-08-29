@@ -10,6 +10,7 @@ import { usePaketa } from './paketa';
 import { useOfertat } from './useOfertat';
 import BookingForm from './BookingForm';
 import Foto from './Foto';
+import { hapLinkun } from './hapLinkun';
 import { db } from './firebase';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 
@@ -233,7 +234,7 @@ function BiznesiDetaji({ biznesi }) {
                 💬 WhatsApp
               </a>
             )}
-            <button onClick={() => { numero('klikNavigo'); window.open(merrMapsUrl(biznesi), '_blank'); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
+            <button onClick={() => { numero('klikNavigo'); hapLinkun(merrMapsUrl(biznesi)); }} style={butoniVeprimi('#8e8e93')}>🧭 Navigo</button>
             {biznesi.website && (
               <a href={biznesi.website.startsWith('http') ? biznesi.website : `https://${biznesi.website}`} target="_blank" rel="noopener noreferrer" style={butoniVeprimi('#0ea5e9')}>
                 🌐 Website

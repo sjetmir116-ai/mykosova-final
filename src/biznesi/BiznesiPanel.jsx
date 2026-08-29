@@ -9,6 +9,7 @@ import { useOfertat, shtoOferta, fshiOfertu, esOfertaAktive } from '../useOferta
 import { db, fcn } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { regjistroAudit } from '../audit';
+import { hapLinkun } from '../hapLinkun';
 
 // ===== PANELI I BIZNESIT (spec B1-B11, B14-B17) =====
 // Rruga: /biznesi — vetëm për përdorues që pronësojnë biznesë (uidPronari == uid)
@@ -385,7 +386,7 @@ function Paketa({ bizneseve, paketa, darkMode, stiliTekstit, korniza }) {
     setMesazhi('');
     try {
       const res = await fcn.https.onCall('hapPortalin')({});
-      window.open(res.data.url, '_blank');
+      hapLinkun(res.data.url);
     } catch (err) {
       setMesazhi('❌ ' + (err?.message || err));
     } finally {

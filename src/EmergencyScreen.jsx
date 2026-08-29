@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { AppContext } from './AppContext';
 import { useUrgjencave } from './useKontenti';
 import theme from './theme';
+import { hapLinkun } from './hapLinkun';
 
 function EmergencyScreen() {
   const { darkMode, userLocation, t } = useContext(AppContext);
@@ -25,7 +26,7 @@ function EmergencyScreen() {
   const korniza = darkMode ? '#2d2d2d' : '#e5e7eb';
   const stiliTekstit = darkMode ? '#ffffff' : '#000000';
 
-  const hapNgaGjuha = (pyetja) => window.open(`https://www.google.com/maps/search/${encodeURIComponent(pyetja)}`, '_blank');
+  const hapNgaGjuha = (pyetja) => hapLinkun(`https://www.google.com/maps/search/${encodeURIComponent(pyetja)}`);
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', paddingBottom: '100px', fontFamily: 'sans-serif', color: stiliTekstit }}>

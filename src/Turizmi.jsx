@@ -3,6 +3,7 @@ import { AppContext } from './AppContext';
 import { useAttraksioneve, QYTETET_E_KOSOVES } from './attraksionet';
 import { meDistanca, formatoDistancm } from './distanca';
 import Foto from './Foto';
+import { hapLinkun } from './hapLinkun';
 
 // ===== TURIZMI NË KOSOVË 🏔️ (Faza 3 — spec T1, T2) =====
 // Faqe e dedikuar: pikat turistike me foto, histori, aktivitetet + Navigo.
@@ -145,7 +146,7 @@ function Turizmi() {
               )}
 
               <button
-                onClick={() => window.open(`https://www.google.com/maps?q=${a.lat},${a.lng}`, '_blank')}
+                onClick={() => hapLinkun(`https://www.google.com/maps?q=${a.lat},${a.lng}`)}
                 style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: '12px', border: 'none', backgroundColor: '#3b82f6', color: '#fff', fontWeight: '800', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 🧭 Navigo te {a.emri.split(' ').slice(0, 2).join(' ')}

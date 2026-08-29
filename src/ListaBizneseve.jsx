@@ -6,6 +6,7 @@ import RatingStars from './RatingStars';
 import { meDistanca, formatoDistancm } from './distanca';
 import QytetiManual from './QytetiManual';
 import Foto from './Foto';
+import { hapLinkun } from './hapLinkun';
 
 function ListaBizneseve() {
   const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje } = useContext(AppContext);
@@ -123,7 +124,7 @@ function ListaBizneseve() {
                     <p style={{ margin: '4px 0 0 0', color: '#16a34a', fontSize: '13px', fontWeight: '600' }}>{biznesi.oferta}</p>
                   ) : null}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); window.open(merrMapsUrl(biznesi), '_blank'); }} style={{ width: '100%', backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '15px' }}>
+                <button onClick={(e) => { e.stopPropagation(); hapLinkun(merrMapsUrl(biznesi)); }} style={{ width: '100%', backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '15px' }}>
                   Navigo 🧭
                 </button>
               </div>
