@@ -8,7 +8,7 @@ import { gjejFotoAutomatikisht } from './biznesFoto';
 import QytetiManual from './QytetiManual';
 
 function HomeScreen({ setEkrani }) {
-  const { darkMode, gjuha, setGjuha, userLocation, gpsError, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal } = useContext(AppContext);
+  const { darkMode, gjuha, setGjuha, userLocation, gpsError, gpsStatus, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
   const [tekstiKerkimit, setTekstiKerkimit] = useState(vleraKerkimi);
   const { moti, loading: motiLoading, gabim: motiGabim } = useMoti(userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : {});
   const { bizneset } = useBizneset();
