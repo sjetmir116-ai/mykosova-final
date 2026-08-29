@@ -7,6 +7,7 @@ import HartaScreen from './HartaScreen';
 import ShtoBiznes from './ShtoBiznes';
 import SmartSearch from './SmartSearch';
 import ListaBizneseve from './ListaBizneseve';
+import Turizmi from './Turizmi';
 import EmergencyScreen from './EmergencyScreen';
 import Asistenti from './asistenti';
 import Llogaria from './Llogaria';
@@ -95,6 +96,13 @@ function EkraniKryesor() {
           </button>
 
           <button
+            onClick={() => setEkraniAktual('turizmi')}
+            style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'turizmi' ? '#16a34a' : 'transparent', color: ekraniAktual === 'turizmi' ? '#fff' : '#8e8e93' }}
+          >
+            {t('turizmi')}
+          </button>
+
+          <button
             onClick={() => setEkraniAktual('urgjenca')}
             style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'urgjenca' ? '#dc2626' : 'transparent', color: ekraniAktual === 'urgjenca' ? '#fff' : '#ef4444' }}
           >
@@ -177,6 +185,7 @@ function EkraniKryesor() {
             {ekraniAktual === 'shto' && <ShtoBiznes />}
             {ekraniAktual === 'kerko' && <SmartSearch />}
             {ekraniAktual === 'lista' && <ListaBizneseve />}
+            {ekraniAktual === 'turizmi' && <Turizmi />}
             {ekraniAktual === 'urgjenca' && <EmergencyScreen />}
             {ekraniAktual === 'trip' && <TripScreen />}
             {ekraniAktual === 'asistenti' && <Asistenti />}

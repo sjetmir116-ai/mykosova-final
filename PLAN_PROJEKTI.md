@@ -146,7 +146,7 @@ src/
 
 ### 🥉 FAZA 3 — VEÇORITË E LARTË
 1. ✅ **"Afër meje" — distanca GPS (Haversine) + butoni në Ballina/Harta** (29.08.2026): buton te Ballina + shiriti "Të afërt me ju" (4 më të afërtat me foto + distancë), ndërrues "📍 Afër meje ✓" te Lista (renditje live + shenja "X km nga ju" + statusi i GPS me riprovim), buton "📍 Afër meje" te Harta. U shtuan lat/lng te 7 bizneset lokale + u rregullua bug i vjetër `meDistanca` (parametri i keq-emërtuar) — gjetur me 12 teste unitare (12/12 ✅)
-2. `Turizmi.jsx` — pika turistike me foto, histori, navigo
+2. ✅ **`Turizmi.jsx` — pika turistike me foto, histori, navigo** (29.08.2026): faqe e dedikuar me 10 atraksione (foto, përshkrim, aktivitetet, Navigo Google Maps), ullërimi i 10 qyteteve (filtrim), filtri i kategorive, renditje sipas distancës nga lokacioni real/manual (integrim me "Afër meje"), buton te navbar (5 gjuhë) + 4 kartela te Ballina. U rregulluan 8 gabime koordinatash (p.sh. Kalaja e Gjakovës ishte te koordinatat e Prizrenit) — verifikuar me 11 teste
 3. `Ofertat.jsx` — të gjitha ofertat në një vend
 4. Analytics events (search, view, navigate, rate, sos)
 

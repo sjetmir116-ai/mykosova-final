@@ -3,6 +3,7 @@ import { AppContext } from './AppContext';
 import theme from './theme';
 import { useMoti, esMotIMire } from './moti';
 import { useBizneset } from './useBizneset';
+import { useAttraksioneve } from './attraksionet';
 import { meDistanca, formatoDistancm } from './distanca';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 import QytetiManual from './QytetiManual';
@@ -12,6 +13,7 @@ function HomeScreen({ setEkrani }) {
   const [tekstiKerkimit, setTekstiKerkimit] = useState(vleraKerkimi);
   const { moti, loading: motiLoading, gabim: motiGabim } = useMoti(userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : {});
   const { bizneset } = useBizneset();
+  const { lista: attraksionet } = useAttraksioneve();
 
   // AFËR MEJE (Faza 3): 4 bizneset më të afërta nga GPS-i i përdoruesit (Haversine)
   const teAferT = userLocation
@@ -261,7 +263,37 @@ function HomeScreen({ setEkrani }) {
         </div>
       </div>
 
-      {/* 5. KATEGORITË SMART — kliko për të kërkuar */}
+      {/* 5. TURIZMI — 4 atraksionet me foto + link te faqja e dedikuar (Faza 3) */}
+      <div style={{ marginBottom: '35px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '15px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#16a34a' }}>{t('turizmi')} 🏔️</h3>
+          <button onClick={() => setEkrani('turizmi')} style={{ background: 'none', border: 'none', color: '#16a34a', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}>
+            Të gjitha →
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+          {attraksionet.slice(0, 4).map((a) => (
+            <div
+              key={a.emri}
+              onClick={() => setEkrani('turizmi')}
+              style={{ minWidth: '150px', maxWidth: '150px', borderRadius: theme.borderRadius.pill, overflow: 'hidden', backgroundColor: stiliKartelës, border: `1px solid ${korniza}`, cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}
+            >
+              <img
+                src={a.foto && String(a.foto).startsWith('http') ? a.foto : `https://picsum.photos/seed/${encodeURIComponent(a.emri)}/400/300`}
+                alt={a.emri}
+                style={{ width: '100%', height: '84px', objectFit: 'cover', display: 'block' }}
+                onError={(e) => (e.target.style.display = 'none')}
+              />
+              <div style={{ padding: '8px 10px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: '800', color: stiliTekstit, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.ikona} {a.emri}</div>
+                <div style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '600' }}>📍 {a.qyteti}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 6. KATEGORITË SMART — kliko për të kërkuar */}
       <div>
         <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '15px' }}>{t('kategorite')}</h3>
         <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' }}>
