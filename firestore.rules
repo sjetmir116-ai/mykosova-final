@@ -1,0 +1,254 @@
+rules_version = '2';
+
+// ============================================================
+// MY KOSOVA — FIRESTORE SECURITY RULES v2.1 (AUDITUAR 26.08.2026)
+// v2.1 (29.08.2026): + koleksioni analytics_events (ngjarjet e përdoruesve,
+//         Faza 3.4) — create me validim të mbyllur, read vetëm admin
+//
+// SI TA PUBLIKOSSH: Firebase Console → Firestore → Rules →
+// copiofa TË GJITHË këtë skedar → Publish.
+// (Ky skedar DHE teksti te Console duhet të jenë IDENTIKË.)
+//
+// PRINCIPAT E SIGURISË:
+//  1. role-ët ndryshohen VETËM nga admin (self-promotion = E MBYLUR)
+//  2. bookings/trips/favorites: vetëm pronari (+ biznesi për bookings) + admin
+//  3. reviews: publike sipas dizajnit — email-i i reviewer-it S'RUHET te dokumenti
+//  4. subscriptions/payments: E MBYLLUR nga klienti (i shkruan vetëm backend)
+//  5. çdo collection e panjohur = E MBYLLUR (catch-all në fund)
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== NDIHMËSAT =====
+    function eAutentikuar() {
+      return request.auth != null;
+    }
+
+    function roliIme() {
+      return get(/databases/$(database)/documents/përdoruesit/$(request.auth.uid)).data.roli;
+    }
+
+    function esAdmin() {
+      return eAutentikuar() && (roliIme() == 'admin' || roliIme() == 'super_admin');
+    }
+
+    function esModeratorOseAdmin() {
+      return esAdmin() || (eAutentikuar() && roliIme() == 'moderator');
+    }
+
+    // Bootstrap-i i adminit të parë: konsiderohet i kryer nëse ekziston dokumenti i konfigurimit
+    function bootstrapIkryer() {
+      return get(/databases/$(database)/documents/konfigurimi/global).exists();
+    }
+
+    // Fushat që pronari mund të ndryshojë te biznesi I VET.
+    // EKSKLUDOHEN qëllimisht: status, uidPronari, paketa, verifikuar,
+    // sponsoruar, shikime, klikTelefoni, klikWhatsApp, klikNavigo,
+    // yllatNumer, krijuarM (këto i kontrollon vetëm admini/backendi)
+    function fushaTePronarit() {
+      return ['emri', 'kategoria', 'qyteti', 'adresa', 'foto', 'telefoni',
+              'whatsapp', 'website', 'pershkrimi', 'oferta', 'lat', 'lng',
+              'orari', 'sherbimet', 'paketaKërkuar'];
+    }
+
+    // ===== 1. PËRDORUESIT (llogaritë) =====
+    match /përdoruesit/{uid} {
+      // Çdo përdorues lexon profilin e vet; moderator/admin lexojnë të gjithë
+      allow get: if eAutentikuar() && (request.auth.uid == uid || esModeratorOseAdmin());
+      // Lista e përdoruesve: VETËM admin
+      allow list: if esAdmin();
+      // Regjistrimi: vetë, VETËM fushat e sakta, roli 'user'
+      //   ('admin' lejetohet vetëm te bootstrap-i — nëse ende s'ka asnjë admin)
+      allow create: if eAutentikuar()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'emri', 'roli', 'krijuarM'])
+        && request.resource.data.keys().hasAll(['uid', 'email', 'emri', 'roli', 'krijuarM'])
+        && (request.resource.data.roli == 'user'
+            || (request.resource.data.roli == 'admin' && !bootstrapIkryer()));
+      // Ndryshimi:
+      //   - admin: çdo fushë (I VETMI që ndryshon role)
+      //   - vetë: VETËM fushën 'emri' (roli, email, çdo fushë tjetër = E BLLOKUAR)
+      //   - bootstrap: përdoruesi i parë merr 'admin' vetëm nëse s'ka asnjë admin
+      allow update: if esAdmin()
+        || (eAutentikuar() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['emri']))
+        || (eAutentikuar() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roli'])
+            && request.resource.data.roli == 'admin'
+            && !bootstrapIkryer());
+      // Fshirja: vetëm admin
+      allow delete: if esAdmin();
+    }
+
+    // ===== 2. KONFIGURIMI (bootstrap-i i adminit të parë) =====
+    match /konfigurimi/global {
+      allow get: if eAutentikuar();
+      // Krijohet vetëm nga bootstrap-i — duhet të përmbajë adminiKryesor
+      allow create: if eAutentikuar()
+        && resource == null
+        && request.resource.data.adminiKryesor is string;
+      allow update: if esAdmin();
+      allow delete: if esAdmin();
+    }
+
+    // ===== 3. BIZNESET =====
+    match /bizneset/{id} {
+      // Të dhënat e bizneseve janë publike sipas dizajnit (Yellow Pages)
+      allow get: if true;
+      allow list: if true;
+      // Krijim: i autentikuar, GJITHMONË me status 'pendshe', vetëm me uidPronarin e vet
+      allow create: if eAutentikuar()
+        && request.resource.data.status == 'pendshe'
+        && request.resource.data.uidPronari == request.auth.uid;
+      // Ndryshim: admin/moderator (çdo fushë)
+      //           OSE pronari — vetëm fushat e lejuara, VETËM nëse është pronari i atij biznesi
+      //           (status/uidPronari/paketa/verifikuar/sponsoruar/shtuesit = i pamundur nga frontend-i)
+      allow update: if esModeratorOseAdmin()
+        || (eAutentikuar()
+            && get(/databases/$(database)/documents/bizneset/$(id)).data.uidPronari == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fushaTePronarit()));
+      // Fshirje: vetëm admin
+      allow delete: if esAdmin();
+    }
+
+    // ===== 4. AUDIT LOG =====
+    match /auditLogs/{logId} {
+      // Çdo përdorues i autentikuar regjiston veprimet e VETA
+      allow create: if eAutentikuar()
+        && request.resource.data.uid == request.auth.uid;
+      // Leximi: vetëm admin (kush + kur + çfarë)
+      allow get, list: if esAdmin();
+      // Asnjë ndryshim/fshirje nga klienti
+      allow update, delete: if false;
+    }
+
+    // ===== 5. KONTENTI I MENAXHUESHËM NGA ADMINI =====
+    match /kategorite/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    match /qytetet/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    match /emergencyServices/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    match /attractions/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    match /events/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    // ===== 6. REVIEWS =====
+    match /reviews/{id} {
+      // Publike sipas dizajnit (SHËNIM: email-i S'RUHET te dokumenti — shih raportin)
+      allow read: if true;
+      // Krijim: vetëm përdorues të autentikuar (guest = E BLLOKUAR)
+      allow create: if eAutentikuar();
+      // Moderim: admin/moderator (çdo fushë)
+      // Raportim: i autentikuar mund të prekë VETËM fushën 'raportuar'
+      allow update: if esModeratorOseAdmin()
+        || (eAutentikuar() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['raportuar']));
+      // Fshirje: vetëm admin
+      allow delete: if esAdmin();
+    }
+
+    // ===== 7. FAVORITES =====
+    match /favorites/{uid} {
+      // VETËM pronari (dokumenti quhet me uid — path-i vetë e kufizon)
+      allow get: if eAutentikuar() && request.auth.uid == uid;
+      allow list: if false;
+      allow create, update: if eAutentikuar()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid;
+      allow delete: if eAutentikuar() && request.auth.uid == uid;
+    }
+
+    // ===== 8. BOOKINGS =====
+    match /bookings/{id} {
+      // LEXIMI: vetë (booking-u im) OSE pronari i biznesit OSE admin/moderator
+      allow get: if eAutentikuar()
+        && (resource.data.përdoruesiUid == request.auth.uid
+            || resource.data.uidPronari == request.auth.uid
+            || esModeratorOseAdmin());
+      // KËRKIMET (where): i autentikuar — nevojitet për app-in (shih raportin: risk i mbetur)
+      allow list: if eAutentikuar();
+      // KRIJIMI: vetëm booking për VETE (s' mund të falsifikohet përdoruesi tjetër)
+      allow create: if eAutentikuar()
+        && request.resource.data.përdoruesiUid == request.auth.uid;
+      // NDRYSHIMI: vetë (booking-u im) OSE pronari i biznesit OSE admin/moderator
+      allow update: if eAutentikuar()
+        && (resource.data.përdoruesiUid == request.auth.uid
+            || resource.data.uidPronari == request.auth.uid
+            || esModeratorOseAdmin());
+      // FSHIRJA: vetëm admin
+      allow delete: if esAdmin();
+    }
+
+    // ===== 9. TRIPS (subcollection — mbyllje totale e list-exposure) =====
+    // Struktura: trips/{uid}/{tripId} — path-i vetë kufizon në pronar
+    match /trips/{uid}/{tripId} {
+      allow read: if eAutentikuar() && request.auth.uid == uid;
+      allow create: if eAutentikuar()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid;
+      allow update: if eAutentikuar() && request.auth.uid == uid;
+      allow delete: if eAutentikuar() && request.auth.uid == uid;
+    }
+
+    // ===== 10. OFFERS =====
+    match /offers/{id} {
+      // Publike sipas dizajnit
+      allow read: if true;
+      // Krijim: VETËM pronari i atij biznesit (uidPronari duhet të jetë vetë)
+      allow create: if eAutentikuar()
+        && request.resource.data.uidPronari == request.auth.uid;
+      // Ndryshim/fshirje: admin/moderator OSE pronari i atij biznesit
+      allow update, delete: if esModeratorOseAdmin()
+        || (eAutentikuar() && resource.data.uidPronari == request.auth.uid);
+    }
+
+    // ===== 11. PACKAGES / SUBSCRIPTIONS / PAYMENTS =====
+    // Çmimet e paketeve: publike (të shohin të gjithë), i ndryshon vetëm admini
+    match /packages/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    // SUBSCRIPTIONS: E MBYLLUR nga klienti — i shkruan vetëm backend
+    // (më vonë: payment webhook / Cloud Function me Admin SDK)
+    match /subscriptions/{id} {
+      allow read: if esModeratorOseAdmin();
+      allow write: if false;
+    }
+    // PAYMENTS: E MBYLLUR nga klienti — i shkruan vetëm backend (webhook)
+    match /payments/{id} {
+      allow read: if esAdmin();
+      allow write: if false;
+    }
+
+    // ===== 12. ANALITIKA (ngjarjet e përdoruesve — Faza 3.4) =====
+    // ÇDO vizitor (edhe jo i loguar) krijon ngjarje, POR:
+    //  - vetëm fushat e sakta (ngjarja, detajet, koha)
+    //  - vetëm ngjarjet e njohura (listë e mbyllur — jo çdo string)
+    //  - koha DETYROHET të jetë koha e serverit (jo e fabrikuar nga klienti)
+    // Lexim: VETËM admin (Paneli Admin → Analitika). S'ka update nga klienti.
+    match /analytics_events/{id} {
+      allow read: if esAdmin();
+      allow create: if request.resource.data.keys() == ['ngjarja', 'detajet', 'koha']
+        && request.resource.data.ngjarja in ['kërkim', 'hapje_biznesi', 'navigo', 'telefon', 'vlerësim', 'sos', 'ndaje', 'shtim_biznesi']
+        && request.resource.data.koha == request.time;
+      allow update, delete: if esAdmin();
+    }
+
+    // ===== 13. MBIKËNDREJTJE: çdo collection tjetër = E MBYLLUR =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

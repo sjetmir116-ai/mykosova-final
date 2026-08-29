@@ -1,0 +1,23 @@
+# Node
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Environment
+.env
+.env.local
+functions/.env
+
+# Functions
+functions/node_modules/
