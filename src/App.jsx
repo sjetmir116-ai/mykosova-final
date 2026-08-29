@@ -8,6 +8,7 @@ import ShtoBiznes from './ShtoBiznes';
 import SmartSearch from './SmartSearch';
 import ListaBizneseve from './ListaBizneseve';
 import Turizmi from './Turizmi';
+import Ofertat from './Ofertat';
 import EmergencyScreen from './EmergencyScreen';
 import Asistenti from './asistenti';
 import Llogaria from './Llogaria';
@@ -58,8 +59,8 @@ function EkraniKryesor() {
           <small style={{ fontSize: '10px', color: '#8e8e93', marginTop: '2px', fontWeight: 'bold' }}>{t('madeInKosovo')}</small>
         </div>
 
-        {/* Butonat e ekranit me përkthim dinamik */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Butonat e ekranit me përkthim dinamik (lexojnë te 2 vitesh te ekranet e ngushta) */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
             onClick={() => setEkraniAktual('ballina')}
             style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'ballina' ? '#3b82f6' : 'transparent', color: ekraniAktual === 'ballina' ? '#fff' : '#8e8e93' }}
@@ -100,6 +101,13 @@ function EkraniKryesor() {
             style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'turizmi' ? '#16a34a' : 'transparent', color: ekraniAktual === 'turizmi' ? '#fff' : '#8e8e93' }}
           >
             {t('turizmi')}
+          </button>
+
+          <button
+            onClick={() => setEkraniAktual('ofertat')}
+            style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'ofertat' ? '#16a34a' : 'transparent', color: ekraniAktual === 'ofertat' ? '#fff' : '#8e8e93' }}
+          >
+            {t('ofertat')}
           </button>
 
           <button
@@ -186,6 +194,7 @@ function EkraniKryesor() {
             {ekraniAktual === 'kerko' && <SmartSearch />}
             {ekraniAktual === 'lista' && <ListaBizneseve />}
             {ekraniAktual === 'turizmi' && <Turizmi />}
+            {ekraniAktual === 'ofertat' && <Ofertat setEkrani={setEkraniAktual} />}
             {ekraniAktual === 'urgjenca' && <EmergencyScreen />}
             {ekraniAktual === 'trip' && <TripScreen />}
             {ekraniAktual === 'asistenti' && <Asistenti />}
@@ -198,7 +207,7 @@ function EkraniKryesor() {
 
       {/* Footer me linket juridikore */}
       <footer style={{ padding: '14px 20px', borderTop: `1px solid ${vijaNdarse}`, display: 'flex', justifyContent: 'center', gap: '18px', fontSize: '12px', color: '#8e8e93', backgroundColor: darkMode ? '#111827' : '#ffffff', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span>MyKosova 🇽 v1.0.6</span>
+        <span>MyKosova 🇽 v1.0.7</span>
         <button onClick={() => setEkraniAktual('legal')} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
           Privatësia
         </button>

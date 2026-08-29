@@ -43,6 +43,31 @@ export function useOfertat(biznesiEmri) {
   return { ofertat, aktive, skaduar, loading };
 }
 
+// TË GJITHA ofertat (faqja "Ofertat" — Faza 3.3) — live sync nga i gjithë koleksioni
+export function useOfertatTeGjitha() {
+  const [ofertat, setOfertat] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'offers'),
+      (snap) => {
+        setOfertat(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+      },
+      (err) => {
+        console.warn('Ofertat s\u2019u arritën:', err.message);
+        setLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
+
+  const aktive = ofertat.filter(esOfertaAktive);
+  const skaduar = ofertat.filter((o) => !esOfertaAktive(o));
+  return { ofertat, aktive, skaduar, loading };
+}
+
 // SIGURIA (S1-pika7): ruhet uidPronari që rules v2 ta kufizojë shkrimin
 // vetëm te pronari i atij biznesi
 export function shtoOferta({ biznesiEmri, uidPronari, lloji, teksti, cmimiVjete, cmimiIri, vlenDeri }) {

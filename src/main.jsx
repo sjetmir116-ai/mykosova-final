@@ -4,7 +4,7 @@ import App from './App.jsx'
 import { AppProvider } from './AppContext.jsx'
 
 // VERSIONI I KODIT — shihet edhe te ekrani i gabimit (për të parë nëse browser-i ka kodin e ri)
-export const VERSIONI = '1.0.6'
+export const VERSIONI = '1.0.7'
 
 // ERROR BOUNDARY — nëse çdo ekran i gabon, tregon gabimin në vend të faqes bosh
 class ErrorBoundary extends React.Component {
@@ -30,8 +30,8 @@ class ErrorBoundary extends React.Component {
             Mbyll dhe hap sërish faqen (ose Ctrl+Shift+R). Nëse gabimi përsëritet, kopjo tekstin e sipërm dhe dërgonaje.
           </p>
           <p style={{ fontSize: '12px', fontWeight: '800', color: '#6b7280', marginTop: '8px' }}>
-            Vershioni i kodit që po ekzekutohet: <span style={{ color: VERSIONI === '1.0.6' ? '#16a34a' : '#ef4444' }}>{VERSIONI}</span>
-            {VERSIONI !== '1.0.6' && ' — ⚠️ KËTË KËSHILLËN TË VJETËR! Bëj hard refresh (Ctrl+Shift+R) ose hap në tab të ri.'}
+            Vershioni i kodit që po ekzekutohet: <span style={{ color: VERSIONI === '1.0.7' ? '#16a34a' : '#ef4444' }}>{VERSIONI}</span>
+            {VERSIONI !== '1.0.7' && ' — ⚠️ KËTË KËSHILLËN TË VJETËR! Bëj hard refresh (Ctrl+Shift+R) ose hap në tab të ri.'}
           </p>
           <button
             onClick={() => { this.setState({ gabimi: null }); window.location.reload() }}

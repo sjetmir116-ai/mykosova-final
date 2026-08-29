@@ -296,7 +296,29 @@ function HomeScreen({ setEkrani }) {
         </div>
       </div>
 
-      {/* 6. KATEGORITË SMART — kliko për të kërkuar */}
+      {/* 6. OFERTAT 🎁 — 3 ofertat aktive + link te faqja e dedikuar (Faza 3.3) */}
+      <div style={{ marginBottom: '35px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '15px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#16a34a' }}>Ofertat 🎁</h3>
+          <button onClick={() => setEkrani('ofertat')} style={{ background: 'none', border: 'none', color: '#16a34a', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}>
+            Të gjitha →
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+          {bizneset.filter((b) => b.oferta && String(b.oferta).trim()).slice(0, 4).map((b) => (
+            <div
+              key={b.id}
+              onClick={() => setBiznesiIzgjedhur(b)}
+              style={{ minWidth: '230px', maxWidth: '230px', borderRadius: theme.borderRadius.pill, padding: '12px 14px', backgroundColor: '#16a34a0d', border: '1px solid #16a34a40', cursor: 'pointer' }}
+            >
+              <div style={{ fontSize: '13px', fontWeight: '800', color: stiliTekstit, marginBottom: '4px' }}>🏢 {b.emri}</div>
+              <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '600', lineHeight: 1.4 }}>{b.oferta}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 7. KATEGORITË SMART — kliko për të kërkuar */}
       <div>
         <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '15px' }}>{t('kategorite')}</h3>
         <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' }}>
