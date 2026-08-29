@@ -96,7 +96,9 @@ function HomeScreen({ setEkrani }) {
         {userLocation?.burimi === 'gps' ? (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: theme.borderRadius.pill, backgroundColor: darkMode ? '#052e16' : '#e6f4ea', border: '1px solid #16a34a40', fontSize: '13px', fontWeight: '700', color: '#16a34a', flexWrap: 'wrap' }}>
             📍 <b>Lokacioni juaj REAL</b>: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
-            <span style={{ fontWeight: '500', opacity: 0.85 }}>· aktualizuar {userLocation.koha?.toLocaleTimeString('sq-AL')} · përditësohet vetë kur lëvizni</span>
+            <span style={{ fontWeight: '500', opacity: 0.85 }}>
+              {userLocation.saktezia != null ? `· saktësi ±${userLocation.saktezia} m` : ''} · aktualizuar {userLocation.koha?.toLocaleTimeString('sq-AL')} · përditësohet vetë kur lëvizni
+            </span>
           </div>
         ) : userLocation?.burimi === 'manual' ? (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: theme.borderRadius.pill, backgroundColor: darkMode ? '#172554' : '#eff6ff', border: '1px solid #3b82f640', fontSize: '13px', fontWeight: '700', color: '#2563eb', flexWrap: 'wrap' }}>

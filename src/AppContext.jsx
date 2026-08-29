@@ -169,6 +169,7 @@ export const AppProvider = ({ children }) => {
           burimi: 'gps',
           qyteti: null,
           koha: new Date(),
+          saktezia: position.coords.accuracy != null ? Math.round(position.coords.accuracy) : null,
         });
         setGpsStatus('aktiv');
         setGpsError(null);
