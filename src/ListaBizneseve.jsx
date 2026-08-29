@@ -9,7 +9,7 @@ import Foto from './Foto';
 import { hapLinkun } from './hapLinkun';
 
 function ListaBizneseve() {
-  const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje } = useContext(AppContext);
+  const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje, vendndodhja } = useContext(AppContext);
   const { bizneset, loading } = useBizneset();
   const [kerkimi, setKerkimi] = useState('');
 
@@ -71,7 +71,7 @@ function ListaBizneseve() {
           border: '1px solid ' + (userLocation?.burimi === 'gps' ? '#13733340' : userLocation?.burimi === 'manual' ? '#3b82f640' : gpsStatus === 'kekerkuese' ? '#3b82f640' : '#f59e0b60'),
         }}>
           {userLocation?.burimi === 'gps' ? (
-            <>✅ 📍 Renditur sipas lokacionit tuaj <b>REAL</b>: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)} · aktualizuar {userLocation.koha?.toLocaleTimeString('sq-AL')} (përditësohet vetë kur lëvizni)</>
+            <>✅ 📍 Renditur sipas lokacionit tuaj <b>REAL</b>: {vendndodhja || '...'} (përditësohet vetë kur lëvizni)</>
           ) : userLocation?.burimi === 'manual' ? (
             <>🏙️ Pika e referencës: qendra e <b>{userLocation.qyteti}</b> (MANUAL — jo GPS). Distanca janë reale nga kjo pikë, por jo pozicioni juaj.</>
           ) : gpsStatus === 'kekerkuese' ? (

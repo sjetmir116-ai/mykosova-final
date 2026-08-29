@@ -6,7 +6,7 @@ import { hapLinkun } from './hapLinkun';
 import { ekzekutoNgjarjen } from './analytics';
 
 function EmergencyScreen() {
-  const { darkMode, userLocation, t } = useContext(AppContext);
+  const { darkMode, userLocation, t, vendndodhja } = useContext(AppContext);
 
   // Numrat zyrtarë të urgjencës — nga Firestore (i menaxhueshëm nga admini) me fallback lokal
   const { lista: numratUrgjence } = useUrgjencave();
@@ -15,7 +15,7 @@ function EmergencyScreen() {
     ekzekutoNgjarjen('sos', { lat: userLocation?.lat, lng: userLocation?.lng });
     if (userLocation) {
       alert(
-        `🚨 ALERTI SOS U AKTIVIZUA!\n\nLokacioni yt live u regjistrua:\nLatitude: ${userLocation.lat}\nLongitude: ${userLocation.lng}\n\nDuke thirrur qendrën e koordinimit...`
+        `🚨 ALERTI SOS U AKTIVIZUA!\n\nLokacioni yt live: ${vendndodhja || 'Kosovë'}\nLatitude: ${userLocation.lat}\nLongitude: ${userLocation.lng}\n\nDuke thirrur qendrën e koordinimit...`
       );
     } else {
       alert('🚨 ALERTI SOS!\n\nDuke thirrur urgjencën 112 zyrtare...');

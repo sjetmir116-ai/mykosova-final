@@ -18,6 +18,7 @@ node tests/test-turizmi.mjs
 node tests/test-ofertat.mjs
 node tests/test-analytics.mjs
 node tests/test-embed.mjs
+node tests/test-kodiGeografike.mjs
 
 echo ""
 echo "════════════════════════════════════════════"

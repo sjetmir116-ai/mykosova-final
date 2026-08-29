@@ -6,7 +6,7 @@ import { distancaKm, formatoDistancm } from './distanca';
 import { rendiPaketes } from './paketa';
 
 function SmartSearch() {
-  const { darkMode, vleraKerkimi, userLocation, setBiznesiIzgjedhur, t } = useContext(AppContext);
+  const { darkMode, vleraKerkimi, userLocation, setBiznesiIzgjedhur, t, vendndodhja } = useContext(AppContext);
   const { bizneset, loading } = useBizneset();
   const { lista: kategoritë } = useKategorite();
   const { lista: qytetet } = useQyteteve();
@@ -116,7 +116,7 @@ function SmartSearch() {
           ))}
           {renditja === 'distanca' && userLocation && (
             <span style={{ fontSize: '11px', color: userLocation.burimi === 'gps' ? '#16a34a' : '#d97706', fontWeight: '700' }}>
-              Afër: {userLocation.lat.toFixed(3)}, {userLocation.lng.toFixed(3)} {userLocation.burimi === 'gps' ? '(GPS real)' : `(MANUAL: qendra e ${userLocation.qyteti} — jo GPS)`}
+              Afër: {vendndodhja || (userLocation.burimi === 'gps' ? 'lokacioni juaj' : `qendra e ${userLocation.qyteti}`)} {userLocation.burimi === 'gps' ? '(GPS real)' : '— jo GPS'}
             </span>
           )}
         </div>

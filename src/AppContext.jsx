@@ -4,6 +4,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { merrProfilin } from './auth';
 import { CITET_GPS } from './qyteteGPS';
 import { ekzekutoNgjarjen } from './analytics';
+import { qytetiMeIAferi, kthePershkrimi } from './kodiGeografike';
+import { distancaKm } from './distanca';
 
 // Kjo linjë e saktë duhet detyrimisht të jetë këtu!
 export const AppContext = createContext();
@@ -23,6 +25,35 @@ export const AppProvider = ({ children }) => {
     _setBiznesiIzgjedhur(b);
   };
   const [afërMeje, setAfërMeje] = useState(false); // "Afër meje" (Faza 3) — renditja sipas distancës GPS
+  // VENDNDODHJA ME EMËR NJERËZOR ("Suharekë, Kosovë") — jo koordinata!
+  // Shtesa 1: qyteti më i afërt (shpejt, offline) → Shtesa 2: Nominatim (emri real)
+  // Kërkohet përsëri vetëm kur përdoruesi lëviz 100 m+ (respekton limitin e Nominatimit)
+  const [vendndodhja, setVendndodhja] = useState(null);
+  const pozicioniIkerkuar = useRef(null);
+
+  useEffect(() => {
+    if (!userLocation) {
+      setVendndodhja(null);
+      pozicioniIkerkuar.current = null;
+      return;
+    }
+    if (userLocation.burimi === 'manual') {
+      setVendndodhja(`${userLocation.qyteti} (MANUAL)`);
+      return;
+    }
+    const afri = qytetiMeIAferi(userLocation.lat, userLocation.lng);
+    if (afri) setVendndodhja(afri.emri);
+    const iFundit = pozicioniIkerkuar.current;
+    const larg = iFundit ? distancaKm(iFundit.lat, iFundit.lng, userLocation.lat, userLocation.lng) : 999;
+    if (larg > 0.1) {
+      pozicioniIkerkuar.current = { lat: userLocation.lat, lng: userLocation.lng };
+      let aktiv = true;
+      kthePershkrimi(userLocation.lat, userLocation.lng).then((e) => {
+        if (aktiv && e) setVendndodhja(e);
+      });
+      return () => { aktiv = false; };
+    }
+  }, [userLocation]);
 
   // Sync i përdoruesit me Firebase Auth
   useEffect(() => {
@@ -224,7 +255,7 @@ export const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, gpsStatus, riprovoGPS: kërkoGPS, zgjidhQytetinManual, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal, t }}>
+    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, gpsStatus, riprovoGPS: kërkoGPS, zgjidhQytetinManual, vendndodhja, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal, t }}>
       {children}
     </AppContext.Provider>
   );

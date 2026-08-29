@@ -72,7 +72,7 @@ function pikëzo(biznesi, fjaleTePyetjes, qytetetNeTekst, kategoriteTePergjigjes
 }
 
 // Motori i përgjigjeve: kthen { tekst, bizneset }
-async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = []) {
+async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = [], vendndodhja = null) {
   const t = normalizo(teksti);
 
   // MOTI — "Moti çfarë është në Prizren?" / "A është mot për Rugovë nesër?"
@@ -105,7 +105,7 @@ async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = [
   if (FJALE_URGJENCE.some((f) => t.includes(f))) {
     const biznesiUrgjence = bizneset.find((b) => normalizo(b.kategoria).includes('emergjenc'));
     return {
-      tekst: `🚨 NUMRA TË URGJENCËS:\n• Policia: 192\n• Zjarrfikësit: 193\n• Ambulanca: 194\n• Mbrojtja Civile: 112\n\n${userLocation ? `📍 Lokacioni juaj: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 'Shtyp butonin SOS në ekranin "Urgjenca" për thirrje me dërgim GPS.'}`,
+      tekst: `🚨 NUMRA TË URGJENCËS:\n• Policia: 192\n• Zjarrfikësit: 193\n• Ambulanca: 194\n• Mbrojtja Civile: 112\n\n${userLocation ? `📍 Lokacioni juaj: ${vendndodhja || 'Kosovë'}` : 'Shtyp butonin SOS në ekranin "Urgjenca" për thirrje me dërgim GPS.'}`,
       bizneset: biznesiUrgjence ? [biznesiUrgjence] : [],
     };
   }
@@ -147,7 +147,7 @@ async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = [
       .map((x, i) => `${i + 1}. ${x.b.emri} — ${x.d < 1 ? Math.round(x.d * 1000) + ' m' : x.d.toFixed(1) + ' km'}`)
       .join('\n');
     const pikëbaza = userLocation.burimi === 'gps'
-      ? `📍 Më afër te ju (pozicioni juaj real: ${userLocation.lat.toFixed(3)}, ${userLocation.lng.toFixed(3)}):\n`
+      ? `📍 Më afër te ju (nga ${vendndodhja || 'pozicioni juaj real'}):\n`
       : `📍 Më afër nga qendra e ${userLocation.qyteti} (pikë MANUAL — jo GPS):\n`;
     return { tekst: pikëbaza + teksti, bizneset: teAfertat.map((x) => x.b) };
   }
@@ -216,7 +216,7 @@ async function motorIPergjigjje(teksti, bizneset, userLocation, attraksionet = [
 }
 
 function Asistenti() {
-  const { darkMode, userLocation, setBiznesiIzgjedhur, gjuha } = useContext(AppContext);
+  const { darkMode, userLocation, setBiznesiIzgjedhur, gjuha, vendndodhja } = useContext(AppContext);
   const { bizneset } = useBizneset();
   const { lista: attraksionet } = useAttraksioneve();
   const [dëgjimi, setDëgjimi] = useState(false);
@@ -249,7 +249,7 @@ function Asistenti() {
     // Motori i diturive përgjigjet me të dhënat reale (pa API të jashtëm)
     setTimeout(async () => {
       try {
-        const pergjigjja = await motorIPergjigjje(tekst, bizneset, userLocation, attraksionet);
+        const pergjigjja = await motorIPergjigjje(tekst, bizneset, userLocation, attraksionet, vendndodhja);
         const idPergjigjjes = idCounter.current++;
         setMesazhet((prev) => [
           ...prev,

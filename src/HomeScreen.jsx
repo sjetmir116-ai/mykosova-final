@@ -11,7 +11,7 @@ import Foto from './Foto';
 import { ekzekutoNgjarjen } from './analytics';
 
 function HomeScreen({ setEkrani }) {
-  const { darkMode, gjuha, setGjuha, userLocation, gpsError, gpsStatus, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
+  const { darkMode, gjuha, setGjuha, userLocation, gpsError, gpsStatus, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje, vendndodhja } = useContext(AppContext);
   const [tekstiKerkimit, setTekstiKerkimit] = useState(vleraKerkimi);
   const { moti, loading: motiLoading, gabim: motiGabim } = useMoti(userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : {});
   const { bizneset } = useBizneset();
@@ -100,9 +100,9 @@ function HomeScreen({ setEkrani }) {
         {/* Paneli i GPS-it — 4 gjendje të qarta (real GPS / manual / po kërkon / refuzuar) */}
         {userLocation?.burimi === 'gps' ? (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: theme.borderRadius.pill, backgroundColor: darkMode ? '#052e16' : '#e6f4ea', border: '1px solid #16a34a40', fontSize: '13px', fontWeight: '700', color: '#16a34a', flexWrap: 'wrap' }}>
-            📍 <b>Lokacioni juaj REAL</b>: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+            📍 <b>Lokacioni juaj REAL</b>: {vendndodhja || '...'}
             <span style={{ fontWeight: '500', opacity: 0.85 }}>
-              {userLocation.saktezia != null ? `· saktësi ±${userLocation.saktezia} m` : ''} · aktualizuar {userLocation.koha?.toLocaleTimeString('sq-AL')} · përditësohet vetë kur lëvizni
+              {userLocation.saktezia != null ? `· saktësi ±${userLocation.saktezia} m` : ''} · aktual
             </span>
           </div>
         ) : userLocation?.burimi === 'manual' ? (
