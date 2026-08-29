@@ -48,10 +48,10 @@ function EkraniKryesor() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: darkMode ? '#111827' : '#f3f4f6' }}>
 
       {/* Headeri dhe Menuja e Lundrimit (Navbar) */}
-      <nav style={{ backgroundColor: stiliNav, borderBottom: `1px solid ${vijaNdarse}`, padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'sans-serif', position: 'sticky', top: 0, zIndex: 2000 }}>
+      <nav style={{ backgroundColor: stiliNav, borderBottom: `1px solid ${vijaNdarse}`, padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', rowGap: '10px', fontFamily: 'sans-serif', position: 'sticky', top: 0, zIndex: 2000 }}>
 
         {/* Logoja dhe emri me përkthim dinamik — çon te Ballina */}
-        <div style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer' }} onClick={() => setEkraniAktual('ballina')}>
+        <div style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', flexShrink: 0 }} onClick={() => setEkraniAktual('ballina')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '24px' }}>🇽🇰</span>
             <span style={{ fontWeight: '900', fontSize: '20px', color: '#3b82f6', letterSpacing: '0.5px' }}>MyKosova</span>
@@ -59,8 +59,9 @@ function EkraniKryesor() {
           <small style={{ fontSize: '10px', color: '#8e8e93', marginTop: '2px', fontWeight: 'bold' }}>{t('madeInKosovo')}</small>
         </div>
 
-        {/* Butonat e ekranit me përkthim dinamik (lexojnë te 2 vitesh te ekranet e ngushta) */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {/* Butonat e ekranit me përkthim dinamik — gjithmonë në vitesh e plotë (100% e gjerësinë),
+            pa u shkrirë në kolonë te ekranet e ngushta (bug i 29.08) */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', flex: '1 1 100%', whiteSpace: 'nowrap' }}>
           <button
             onClick={() => setEkraniAktual('ballina')}
             style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: ekraniAktual === 'ballina' ? '#3b82f6' : 'transparent', color: ekraniAktual === 'ballina' ? '#fff' : '#8e8e93' }}
@@ -133,7 +134,7 @@ function EkraniKryesor() {
         </div>
 
         {/* Paneli i përzgjedhjes së 5 Gjuhëve dhe Butoni Dark Mode */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <select
             value={gjuha}
             onChange={(e) => setGjuha(e.target.value)}
@@ -207,7 +208,7 @@ function EkraniKryesor() {
 
       {/* Footer me linket juridikore */}
       <footer style={{ padding: '14px 20px', borderTop: `1px solid ${vijaNdarse}`, display: 'flex', justifyContent: 'center', gap: '18px', fontSize: '12px', color: '#8e8e93', backgroundColor: darkMode ? '#111827' : '#ffffff', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span>MyKosova 🇽 v1.0.7</span>
+        <span>MyKosova 🇽 v1.0.8</span>
         <button onClick={() => setEkraniAktual('legal')} style={{ background: 'none', border: 'none', color: '#8e8e93', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>
           Privatësia
         </button>
