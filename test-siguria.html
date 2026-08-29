@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Siguria — MyKosova</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 860px; margin: 30px auto; padding: 0 16px; background: #0f172a; color: #e2e8f0; }
+  h1 { font-size: 22px; }
+  p.under { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+  button#start { font-size: 18px; font-weight: 800; padding: 14px 34px; border-radius: 12px; border: none; background: #3b82f6; color: #fff; cursor: pointer; }
+  button#start:disabled { opacity: 0.5; cursor: wait; }
+  #out { margin-top: 20px; font-size: 14px; line-height: 1.9; }
+  .ok { color: #4ade80; } .err { color: #f87171; font-weight: 700; } .info { color: #fbbf24; }
+  .final { margin-top: 18px; padding: 14px 18px; border-radius: 12px; font-size: 17px; font-weight: 800; }
+  .final.ok { background: #052e16; color: #4ade80; } .final.err { background: #450a0a; color: #f87171; }
+  a { color: #60a5fa; }
+</style>
+</head>
+<body>
+<h1>🧪 Test Siguria — MyKosova (rules v2.0)</h1>
+<p class="under">
+  Hap këtë faqe <b>te browser-i ku je i loguar te app-i</b> (sesioni përdoret automatikisht).<br>
+  Shtyp butonin, pris rreth 20–40 sekonda, pastaj <b>dërgo skenën e rezultateve</b> (ose kopjo tekstin).<br>
+  Skripti krijon dokumente TEST me emra "TEST SIGURIA..." dhe i pastron pas — s'prek të dhënat reale.
+</p>
+<button id="start">EKZEKUTO TESTET</button>
+<div id="out"></div>
+
+<script type="module">
+const out = document.getElementById('out');
+const log = (html, cls) => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; out.appendChild(d); d.scrollIntoView({ block: 'nearest' }); };
+
+document.getElementById('start').onclick = async () => {
+  const btn = document.getElementById('start');
+  btn.disabled = true; btn.textContent = 'DUKE EKZEKUTUAR...';
+  out.innerHTML = '';
+
+  try {
+    log('Duke ngarkuar modulat e Firebase...');
+    const { db, auth } = await import('/src/firebase.js');
+    const modSrc = await (await fetch('/src/useBookings.js')).text();
+    const m = modSrc.match(/from\s+"([^"]*firebase_firestore[^"]*)"/);
+    if (!m) throw new Error('S\u2019u gjetur moduli i Firestore — rifresho dhe riprovo');
+    const F = await import(/* @vite-ignore */ m[1]);
+    const { doc, getDoc, addDoc, getDocs, collection, updateDoc, deleteDoc } = F;
+    log('✅ Modulat u ngarkuan');
+
+    const user = auth.currentUser;
+    if (!user) {
+      log('❌ S\u2019je i loguar. Hap app-in, logohu (admin), pastaj riprovo.', 'err');
+      btn.disabled = false; btn.textContent = 'RIPROVO';
+      return;
+    }
+    const prof = (await getDoc(doc(db, 'përdoruesit', user.uid))).data() || {};
+    const esAdmin = ['admin', 'super_admin'].includes(prof.roli);
+    log('👤 Testues: <b>' + (prof.emri || user.email) + '</b> | roli: <b>' + (prof.roli || 'user') + '</b>');
+
+    let mire = 0, gabim = 0;
+    const rezultate = [];
+    const test = async (emri, priturja, fn) => {
+      let rez;
+      try { await fn(); rez = 'LEJOWAR'; } catch (e) { rez = 'E REFUZUAR'; }
+      const ok = rez === priturja;
+      ok ? mire++ : gabim++;
+      rezultate.push({ emri, priturja, rez, ok });
+      log((ok ? '✅' : '❌ GABIM ') + ' ' + emri + ' → <b>' + rez + '</b> (pritur: ' + priturja + ')', ok ? 'ok' : 'err');
+    };
+
+    const FAKE = 'fake-uid-' + Date.now();
+    let testBiznesi = null, testBooking = null, testReview = null;
+
+    log('<b>1. SELF-PROMOTION (kritike)</b>');
+    if (!esAdmin) {
+      await test('1a. Ndrysho roli VETEN → admin', 'E REFUZUAR', () => updateDoc(doc(db,'përdoruesit',user.uid), { roli: 'admin' }));
+      await test('1b. Ndrysho email VETEN', 'E REFUZUAR', () => updateDoc(doc(db,'përdoruesit',user.uid), { email: 'hack@test.com' }));
+    } else {
+      log('ℹ️ 1a/1b: je admin — admini mund të ndryshojë fushat (s\u2019u ekzekutuan për të mos prekur llogarinë)', 'info');
+    }
+    await test('1c. Lexo profilin e përdoruesit tjetër (fake)', esAdmin ? 'LEJOWAR' : 'E REFUZUAR', () => getDoc(doc(db,'përdoruesit',FAKE)));
+
+    log('<b>2. BIZNESET</b>');
+    await test('2a. Krijo biznes me uidPronari të huaj', 'E REFUZUAR', () => addDoc(collection(db,'bizneset'), { emri:'TEST X', status:'pendshe', uidPronari:FAKE }));
+    await test('2b. Krijo biznes me status "aprovar" (skip verifikim)', 'E REFUZUAR', () => addDoc(collection(db,'bizneset'), { emri:'TEST Y', status:'aprovar', uidPronari:user.uid }));
+    await test('2c. Krijo biznes TEST (pendshe, i imi)', 'LEJOWAR', async () => { const r = await addDoc(collection(db,'bizneset'), { emri:'TEST SIGURIA ' + Date.now(), status:'pendshe', uidPronari:user.uid, qyteti:'Test', kategoria:'Test' }); testBiznesi = r.id; });
+    if (testBiznesi) {
+      await test('2d. Ndrysho emrin e biznesit TIM (fushë e lejuar)', 'LEJOWAR', () => updateDoc(doc(db,'bizneset',testBiznesi), { emri: 'TEST SIGURIA ' + Date.now() }));
+      await test('2e. Ndrysho STATUSIN e biznesit tim (skip verifikim)', 'E REFUZUAR', () => updateDoc(doc(db,'bizneset',testBiznesi), { status:'aprovar' }));
+      await test('2f. Vendos VERIFIKUAR veten te biznesi im', 'E REFUZUAR', () => updateDoc(doc(db,'bizneset',testBiznesi), { verifikuar:true }));
+      await test('2g. Transfero pronësinë (uidPronari → të huaj)', 'E REFUZUAR', () => updateDoc(doc(db,'bizneset',testBiznesi), { uidPronari:FAKE }));
+      if (esAdmin) await test('2h. Fshi biznesin test (admin)', 'LEJOWAR', () => deleteDoc(doc(db,'bizneset',testBiznesi)));
+      testBiznesi = null;
+    }
+
+    log('<b>3. OFFERS</b>');
+    await test('3a. Krijo ofertë me uidPronari të huaj', 'E REFUZUAR', () => addDoc(collection(db,'offers'), { biznesiEmri:'X', uidPronari:FAKE, teksti:'test' }));
+
+    log('<b>4. BOOKINGS</b>');
+    await test('4a. Krijo booking për VETE', 'LEJOWAR', async () => { const r = await addDoc(collection(db,'bookings'), { biznesiEmri:'TEST', përdoruesiUid:user.uid, përdoruesiEmri:'Test', data:'2026-09-01', status:'pendshe', uidPronari:user.uid }); testBooking = r.id; });
+    if (testBooking) await test('4b. Lexo booking-un TIM', 'LEJOWAR', () => getDoc(doc(db,'bookings',testBooking)));
+    await test('4c. Krijo booking me përdoruesiUid TË HUAJ (falsifikim)', 'E REFUZUAR', () => addDoc(collection(db,'bookings'), { biznesiEmri:'X', përdoruesiUid:FAKE, status:'pendshe' }));
+    await test('4d. Lexo booking të panjohur (simulon të huaj)', esAdmin ? 'LEJOWAR' : 'E REFUZUAR', () => getDoc(doc(db,'bookings','booking-tjetrit-' + Date.now())));
+
+    log('<b>5. TRIPS</b>');
+    await test('5a. Krijo trip te subcollection-i im', 'LEJOWAR', () => addDoc(collection(db,'trips',user.uid), { emri:'TEST Trip ' + Date.now(), uid:user.uid, ditet:[] }));
+    await test('5b. LISTO trip-et e përdoruesit tjetër (list-exposure)', 'E REFUZUAR', () => getDocs(collection(db,'trips',FAKE)));
+    await test('5c. Lexo trip tek përdoruesi tjetër', 'E REFUZUAR', () => getDoc(doc(db,'trips',FAKE,'trip-x')));
+
+    log('<b>6. FAVORITES</b>');
+    await test('6a. Lexo favorites të përdoruesit tjetër', 'E REFUZUAR', () => getDoc(doc(db,'favorites',FAKE)));
+    await test('6b. Shkruaj favorites të përdoruesit tjetër', 'E REFUZUAR', () => F.setDoc(doc(db,'favorites',FAKE), { uid:FAKE, bizneset:[] }));
+
+    log('<b>7. REVIEWS</b>');
+    await test('7a. Krijo review (i autentikuar)', 'LEJOWAR', async () => { const r = await addDoc(collection(db,'reviews'), { biznesiEmri:'TEST', emri:'Test', tekst:'test review', yje:5, uid:user.uid, raportuar:0, ndermuesit:[] }); testReview = r.id; });
+    if (testReview) {
+      await test('7b. Ndrysho TEKSTIN e review-it tim (duhet refuzuar)', 'E REFUZUAR', () => updateDoc(doc(db,'reviews',testReview), { tekst:'hack' }));
+      await test('7c. Raporto review-in (raportuar++)', 'LEJOWAR', () => updateDoc(doc(db,'reviews',testReview), { raportuar: F.increment(1) }));
+      if (esAdmin) await test('7d. Fshi review-in test (admin)', 'LEJOWAR', () => deleteDoc(doc(db,'reviews',testReview)));
+      else { log('ℹ️ 7d. Review-i test mbetet (id: ' + testReview + ') — admini ta fshi nga Console', 'info'); testReview = null; }
+    }
+
+    log('<b>8. SUBSCRIPTIONS / PAYMENTS</b>');
+    await test('8a. Shkruaj subscription (i mbyllur nga klienti, edhe admin)', 'E REFUZUAR', () => addDoc(collection(db,'subscriptions'), { x: 1 }));
+    await test('8b. Shkruaj payment (i mbyllur nga klienti)', 'E REFUZUAR', () => addDoc(collection(db,'payments'), { x: 1 }));
+    await test('8c. Lexo payments', esAdmin ? 'LEJOWAR' : 'E REFUZUAR', () => getDocs(collection(db,'payments')));
+
+    // PASTRIMI
+    log('<b>9. PASTRIMI I DOKUMENTEVE TEST</b>');
+    if (testBooking) { await deleteDoc(doc(db,'bookings',testBooking)).catch(()=>{}); log('✅ Booking-i test u fshi', 'ok'); }
+    const tripSnap = await getDocs(collection(db,'trips',user.uid)).catch(()=>null);
+    if (tripSnap) {
+      let fshi = 0;
+      tripSnap.docs.forEach(t => { if (String(t.data().emri||'').startsWith('TEST Trip')) { deleteDoc(doc(db,'trips',user.uid,t.id)).catch(()=>{}); fshi++; } });
+      log('✅ ' + fshi + ' trip(e) test u fshinë', 'ok');
+    }
+    const bizSnap = await getDocs(collection(db,'bizneset')).catch(()=>null);
+    if (bizSnap && esAdmin) {
+      let fb = 0;
+      bizSnap.docs.forEach(b => { const d = b.data(); if (String(d.emri||'').startsWith('TEST SIGURIA') || d.emri==='TEST X' || d.emri==='TEST Y') { deleteDoc(doc(db,'bizneset',b.id)).catch(()=>{}); fb++; } });
+      if (fb) log('✅ ' + fb + ' biznes(e) test u fshinë', 'ok');
+    } else if (bizSnap && !esAdmin) {
+      const mbeten = bizSnap.docs.filter(b => { const d=b.data(); return String(d.emri||'').startsWith('TEST SIGURIA') || d.emri==='TEST X' || d.emri==='TEST Y'; });
+      if (mbeten.length) log('ℹ️ ' + mbeten.length + ' dokument(e) TEST mbeten — admini t\u2019i fshijë nga Console (Paneli → Menaxho Bizneset)', 'info');
+    }
+
+    const f = document.createElement('div');
+    f.className = 'final ' + (gabim ? 'err' : 'ok');
+    f.textContent = gabim
+      ? '⚠️ PËRFUNDIMI: ' + mire + ' të kaluara, ' + gabim + ' GABIME — raportoheni!'
+      : '✅ PËRFUNDIMI: ' + mire + ' të kaluara, 0 GABIME — GJITHÇKA SAKTË';
+    out.appendChild(f); f.scrollIntoView();
+
+    // DËRGIMI I REZULTATEVE TE AGJENTI (që t'i lexoj unë vetë)
+    const dergimi = { mire, gabim, roli: prof.roli, email: prof.email, kohe: new Date().toISOString(), testet: rezultate };
+    try {
+      const d = await fetch('/rezultatet-testit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dergimi)
+      });
+      log(d.ok
+        ? '📡 Rezultatet u dërguan te agjenti — tani vetëm thuaj "u bë" dhe ai të jep raportin.'
+        : '⚠️ Dërgimi te agjenti dështoi (' + d.status + ') — dërgo skenën e faqes.', 'info');
+    } catch (e) {
+      log('⚠️ Dërgimi te agjenti dështoi (' + e.message + ') — dërgo skenën e faqes.', 'info');
+    }
+  } catch (e) {
+    log('❌ Gabim i papritur: ' + (e.message || e), 'err');
+    console.error(e);
+  }
+  btn.disabled = false; btn.textContent = 'EKZEKUTO SËRISH';
+};
+</script>
+</body>
+</html>

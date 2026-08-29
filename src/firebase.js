@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCo720b5hAPjp-taEH78nMs5G7DSE8FKGk",
@@ -18,6 +20,12 @@ const app = initializeApp(firebaseConfig);
 
 // Eksportimi i Firestore për t'u përdorur në skedarët e tjerë
 export const db = getFirestore(app);
+
+// Eksportimi i Auth (llogaritë e përdoruesve + adminit — credentials server-side te Firebase)
+export const auth = getAuth(app);
+
+// Eksportimi i Functions (pagesat: nisPagesen, hapPortalin, anuloSubscription, riperditStatistikat)
+export const fcn = getFunctions(app);
 
 // Inicializimi i Analytics
 const analytics = getAnalytics(app);

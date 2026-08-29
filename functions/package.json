@@ -1,0 +1,16 @@
+{
+  "name": "mykosova-functions",
+  "description": "MyKosova — Cloud Functions (pagesat, webhook, billing, stats)",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0"
+  }
+}

@@ -1,0 +1,176 @@
+# 📋 PLANI I PLOTË I PROJEKTIT — MyKosova
+
+> Statusi i fundit: 25.08.2026 · Repo: `sjetmir116-ai/mykosova-final` · Branch: `arena/01a03a3c-mykosova-final`
+
+---
+
+## 1. AUDIT — ÇKA KA TANI PROJEKTI (e funksionueshme)
+
+| # | Moduli | Statusi | Shënime |
+|---|--------|---------|---------|
+| 1 | **Ballina** 🏠 | ✅ Funksionuese | GPS live, kërkim i lidhur, Made in Kosovo, 10 kategori, 5 gjuhë |
+| 2 | **Harta** 🗺️ | ✅ Funksionuese | Google Maps embed + panel koordinatash GPS |
+| 3 | **Shto Biznes** 🏢 | ⚠️ E kufizuar | Vetëm 5 fusha, shkon **drejptë live** pa miratim, pa foto/pershkrim/telefon |
+| 4 | **Kërkimi Inteligjent** 🔍 | ✅ Funksionuese | Filtrim pa akcente, 7+ vende reale, Navigo |
+| 5 | **Lista e Bizneseve** 📋 | ✅ Funksionuese | Kartela me foto, vlerësime, oferta, Navigo |
+| 6 | **Urgjenca** 🚨 | ✅ Funksionuese | SOS me GPS, 192/193/194/112, spital/farmaci |
+| 7 | **AI Asistenti** 🤖 | ✅ Funksionuese | Motor diturish me të dhëna reale, sinonime, sugjerime |
+| 8 | **Vlerësimet** ⭐ | ✅ Funksionuese | RatingStars me sync live Firestore |
+| 9 | **5 gjuhët + Dark Mode** 🌐 | ✅ Funksionuese | SQ/EN/FR/DE/IT, theme dark/light |
+| 10 | **Burimi i të dhënash** 🗄️ | ✅ I bashkuar | Lokale (7 vende) + Firestore live |
+
+**Stack:** React 18 + Vite 5 + Firebase (Firestore) · `react-router-dom` është në package.json por **nuk përdoret ende** — do të përdoret për `/admin`.
+
+---
+
+## 2. GAPS — ÇKA MUNGON (dhe prioritetet)
+
+### 🔴 KRITIKE (për t'u bërë të parat)
+
+**A. PANELI ADMIN — s'ekziston fare** ⭐ (kërkesa direktë)
+- Hyrja e adminit (Firebase Auth — email/fjalëkalim)
+- Dashboard me statistika: numri i bizneseve, sipas kategorisë/qytetit, mesatarja e yjeve, shtimet e fundit
+- Menaxhim biznese: **edho, fshi, mirato/rirefu** (status `pendshe` → `aprovar`)
+- Moderim i vlerësimeve
+
+**B. AUTENTIKIMI — s'ka asnjë login**
+- Tani çdo vizitor e shton biznesin **drejptë në listën publike** (pa kontroll)
+- Duhej: Firebase Auth (email + Google), role: `vizitor` / `admin`
+
+**C. FLUSI I SHTIMIT — pa miratim**
+- Modeli i të dhënash duhet të shtojë: `status`, `foto`, `adresa`, `telefoni`, `pershkrimi`, `oferta`, `shtuarM nga`
+- Fushat aktuale: vetëm emri, kategoria, qyteti, lat, lng
+
+### 🟠 E LARTË (pas adminit)
+
+**D. Faqja e Detajit të Biznesit** — kliko një biznes → faqe e dedikuar: foto, pershkrimi, telefon (buton thirrje), hartë me pin, komentet, oferta, buton Ndaje
+
+**E. Komentet / Review-at** — modeli ka `komentet` (te teDhenat.js) por s'ka UI për të shtuar; i duhet formë + listë + modifikim nga admini
+
+**F. "Afër meje" (distanca GPS)** — renditje sipas Haversine nga lokacioni i përdoruesit
+
+**G. Seksioni Turizëm** 🏔️ — faqe e dedikuar për Rugova, kalat, muzetët, parket (tani ekziston vetëm si rezultat kërkimi)
+
+**H. Seksioni Ofertat** 🎁 — faqe e dedikuar (AI-ja i di, por s'ka ekran)
+
+### 🟡 MESATARE (pasi app-i jeton)
+
+**I. PWA** — manifest, service worker, instalueshme, punon offline (rëndësi e madhe për diasporë me internet të dobët)
+
+**J. Deploy + SEO** — netlify.toml (kishte repoja tjetër), meta tags, OG image, sitemap
+
+**K. Analytics** — Firebase Analytics është inicializuar por **s'trackohet asgjë**; event: `search`, `business_view`, `navigate`, `rate`, `sos_press`
+
+**L. Ndaje (Share)** — buton WhatsApp/Facebook në detajin e biznesit
+
+### ⚪ KUALITET (kontinues)
+
+**M. Firebase Security Rules** — ⚠️ **rrezik**: nëse rules janë open, çdo vizitor mund të fshijë/të ndryshojë të gjitha të dhënat. Duhet: lexim public, shkrim vetëm me role
+**N. Testet** — Vitest + React Testing Library (motori i AI-së ka 10 teste të suksesshme si skript — të kthehen testet e vërteta)
+**O. README** — dokumentacioni i repo-t (si ekzekutohet, struktura, credentials)
+
+---
+
+## 3. ARCHITECTURA E PËRMIRËSUAR
+
+```
+src/
+├── App.jsx                 # Router: / , /admin (react-router-dom)
+├── AppContext.jsx          # darkMode, gjuha, GPS, kërkimi, USERI (e re)
+├── teDhenat.js             # të dhënat lokale (7 vende)
+├── useBizneset.js          # burimi i bashkuar (lokale + Firestore)
+├── theme.js                # tema
+├── biznesFoto.js           # foto sipas kategorisë
+├── firebase.js             # Firebase config
+├── motorDiturive.js        # (re) motori i AI-së i shkëputur nga UI → testueshëm
+│
+├── ekranet/                # (opsionale: organizim)
+│   ├── HomeScreen.jsx
+│   ├── HartaScreen.jsx
+│   ├── ShtoBiznes.jsx      # → forma e plotë + status "pendshe"
+│   ├── SmartSearch.jsx
+│   ├── ListaBizneseve.jsx
+│   ├── EmergencyScreen.jsx
+│   ├── asistenti.jsx
+│   ├── BiznesiDetaji.jsx   # (RE)
+│   ├── Turizmi.jsx         # (RE)
+│   └── Ofertat.jsx         # (RE)
+│
+├── admin/                  # (RE) PANELI ADMIN
+│   ├── AdminLayout.jsx     # sidebar + header + guard
+│   ├── Hyrja.jsx           # login
+│   ├── Dashboard.jsx       # statistika
+│   ├── MenaxhoBizneset.jsx # tabela CRUD + miratim
+│   └── Moderimi.jsx        # vlerësimet/komentet
+│
+└── Auth.jsx                # (RE) provider-i i autentikimit
+```
+
+**Modeli i të dhënash i ri (biznesi):**
+```js
+{
+  emri, kategoria, qyteti, adresa, foto, telefoni,
+  lat, lng, pershkrimi, oferta,
+  vleresimi (mesatare), numriIvleresimeve,
+  status: 'pendshe' | 'aprovar',      // ← e re
+  shtuarM nga: { emri, email, data }, // ← e re
+  komentet: [{ autor, tekst, yje, data }]
+}
+```
+
+---
+
+## 4. ROADMAP — FAZAT E PËRKRAHJA
+
+### 🥇 FAZA 1 — PANELI ADMIN ✅ E PËRFUNDUAR (25.08.2026)
+1. ✅ Hyrja me email/fjalëkalim — hash SHA-256 në koleksionin `adminet` (sistemi i bootstrap-it: admini i parë regjistrohet vetë nga browseri, pa ndryshime në Firebase Console)
+2. ✅ Route `/admin` (react-router-dom) + butoni ⚙️ te navbar; pa sesion → faqja e hyrjes
+3. ✅ **Dashboard**: biznese totale, aprovuar/pendshe, sipas kategorisë, sipas qytetit, mesatarja e yjeve, 5 shtimet e fundit + butoni "Ngarko bazën në cloud"
+4. ✅ **Menaxho Bizneset**: kërkim + filtra (të gjitha/pendshe/aprovar), butonat **Mirato ✓ / Rifuzo ✗ / Edho ✏️ / Fshi 🗑️**, bizneset lokale me "Ungjit në cloud"
+5. ✅ Forma e editimit me të gjitha fushat (emri, kategoria, qyteti, adresa, foto, telefoni, lat/lng, pershkrimi, oferta, statusi, vlerësimi)
+6. ✅ Viza e të dhënash: bizneset nga "Shto Biznes" me `status: 'pendshe'` + `shtuarMNga` — publiku i shoh vetëm të aprovuarat (`useBizneset({vetemAprovuar})`)
+
+**Rezultati:** app-i u kthye i kontrollueshëm nga admini.
+
+### 🥈 FAZA 2 — SHTO BIZNES 2.0 + DETAJI + KOMENTET
+1. Forma e plotë: foto (URL), adresë, telefon, pershkrim, oferta, auto-plotësim GPS (buton "Përdor lokacionin tim")
+2. `BiznesiDetaji.jsx`: çdo biznes hapet në faqe të veten me të gjitha + butonin Telefon ☎️
+3. Komente: përdoruesi shton (emri + tekst + yje), admini i moderon
+4. Ndaje (Share): WhatsApp + kopjo linkun
+
+**Rezultati:** përvojë e plotë përdoruesi si Google Maps.
+
+### 🥉 FAZA 3 — VEÇORITË E LARTË
+1. "Afër meje" — distanca GPS (Haversine) + butoni në Ballina/Harta
+2. `Turizmi.jsx` — pika turistike me foto, histori, navigo
+3. `Ofertat.jsx` — të gjitha ofertat në një vend
+4. Analytics events (search, view, navigate, rate, sos)
+
+### 🏁 FAZA 4 — POLISHERI + LANSIM
+1. PWA: manifest + service worker (offline)
+2. Deploy Netlify (netlify.toml) + SEO meta tags
+3. Firebase Security Rules (lexim public, shkrim i kufizuar)
+4. Testet e vërteta (motori i AI-së + filtrimet)
+5. README i plotë
+
+---
+
+## 5. RËZIKET DHE NËNVEPRIMET
+
+| Rreziku | Nënveprimi |
+|---------|-----------|
+| Firebase rules open (shkrim publik) | Shkruaj rules: `allow read: if true; allow write: if isAdmin()` — **FAZA 4, por rrezik tani** |
+| Të dhënat lokale (7 vende) s'janë në Firestore | Të gjitha e shohin; në Fazën 1 admini ta miratojë bazën fillestare → kalohen në Firestore me `status: 'aprovar'` |
+| `react-router-dom` i ri (nuk u testua) | Install tani + test i shpejtë përpara Fazës 1 |
+| Preview sandbox pa internet ndaj Google API | Testet bëhen nga browser-i i përdoruesit; sandbox-u e shërben vetëm kodin |
+
+---
+
+## 6. VENDIMET E MARRA TANI DERI TANI
+
+1. ✅ MyKosov (repoja tjetër) **nuk u merge-ua** — gjithçka u rishkrua nga zero këtu
+2. ✅ `teDhenat.js` u aktivizua si bazë lokale + Firestore si shtesë live
+3. ✅ AI-ja u rindërtua: simulim i rremë → motor diturish me të dhëna reale
+4. ✅ Gjuhët: 5 (SQ/EN/FR/DE/IT) — më mirë se repoja tjetër (4)
+5. ✅ Paneli admin: **i përfunduar** (25.08.2026) — login, dashboard, menaxhim biznese, kontent
+6. ✅ Bug "Cannot read properties of null (reading 'useState')": rregulluar me `resolve.dedupe` + `optimizeDeps.include` te `vite.config.js` (shkaqi: dy kopje të React në Vite — rregullimi standard `resolve.dedupe`)
