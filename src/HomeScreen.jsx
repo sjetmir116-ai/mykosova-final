@@ -7,7 +7,7 @@ import { meDistanca, formatoDistancm } from './distanca';
 import { gjejFotoAutomatikisht } from './biznesFoto';
 
 function HomeScreen({ setEkrani }) {
-  const { darkMode, gjuha, setGjuha, userLocation, gpsError, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje } = useContext(AppContext);
+  const { darkMode, gjuha, setGjuha, userLocation, gpsError, riprovoGPS, t, vleraKerkimi, setVleraKerkimi, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal } = useContext(AppContext);
   const [tekstiKerkimit, setTekstiKerkimit] = useState(vleraKerkimi);
   const { moti, loading: motiLoading, gabim: motiGabim } = useMoti(userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : {});
   const { bizneset } = useBizneset();
@@ -107,10 +107,10 @@ function HomeScreen({ setEkrani }) {
           }}
         >
           📍 {userLocation
-            ? `${t('rrethMeje')}: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}${userLocation.fallback ? ' (bazë: Prishtina)' : ''}`
-            : gpsError
-              ? t('loadingGps')
-              : t('loadingGps')}
+            ? (userLocation.fallback
+              ? 'GPS i REFUZUAR — bazë demo: PRISHTINA (jo pozicioni juaj)'
+              : `${t('rrethMeje')}: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`)
+            : t('loadingGps')}
           {gpsError && (
             <button
               onClick={() => riprovoGPS()}
@@ -195,13 +195,28 @@ function HomeScreen({ setEkrani }) {
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         >
-          📍 {t('rrethMeje')} — rendit sipas distancës
+          📍 {t('rrethMeje')} — {userLocation?.fallback ? 'DEMO nga PRISHTINA' : esLokacioniReal ? 'sipas lokacionit tuaj real' : 'po kërkoj lokacionin...'}
         </button>
+
+        {/* ALERT I QARTË kur GPS-i është refuzuar — fallback-u NUK paraqitet si lokacioni real */}
+        {userLocation?.fallback && (
+          <div style={{ marginTop: '10px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#fff7ed', border: '1px solid #f59e0b60', color: '#92400e', fontSize: '13px', fontWeight: '600', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span>
+              ⚠️ GPS-i u refuzua nga browser-i. Distanca poshtë janë <b>DEMO nga qendra e Prishtinës</b> — <b>NUK</b> janë pozicioni juaj real.
+            </span>
+            <button
+              onClick={() => riprovoGPS()}
+              style={{ padding: '6px 14px', borderRadius: '10px', border: 'none', backgroundColor: '#f59e0b', color: '#fff', fontSize: '12px', fontWeight: '800', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              🔄 Lejo lokacionin
+            </button>
+          </div>
+        )}
 
         {teAferT.length > 0 && (
           <div style={{ marginTop: '14px' }}>
-            <div style={{ fontSize: '12px', fontWeight: '800', color: '#8e8e93', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Të afërt me ju tani {userLocation.fallback ? '(bazë: Prishtina)' : ''}
+            <div style={{ fontSize: '12px', fontWeight: '800', color: userLocation.fallback ? '#f59e0b' : '#8e8e93', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              {userLocation.fallback ? 'Të afërt nga PRISHTINA (demo — jo pozicioni juaj)' : 'Të afërt me ju tani'}
             </div>
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none' }}>
               {teAferT.map((b) => (

@@ -179,7 +179,9 @@ function BiznesiDetaji({ biznesi }) {
               </span>
             )}
             {distanca != null && (
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#8e8e93' }}>📍 {formatoDistancm(distanca)} nga ju</span>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: userLocation?.fallback ? '#b45309' : '#8e8e93' }}>
+                📍 {formatoDistancm(distanca)} {userLocation?.fallback ? 'nga Prishtina (demo — jo pozicioni juaj)' : 'nga ju'}
+              </span>
             )}
           </div>
 

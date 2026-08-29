@@ -145,14 +145,16 @@ export const AppProvider = ({ children }) => {
       return;
     }
     setGpsError(null);
+    // Derisa po kërkoj: s'ka pozicion → UI tregon "po kërkoj" (JO fallback)
     setUserLocation(null);
     navigator.geolocation.getCurrentPosition(
       (position) => setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
       (error) => {
+        // Fallback vetëm si rezervë — gjithmonë i shënuar qartë si "demo"
         setUserLocation({ ...BAZA_DEFAULT, fallback: true });
         setGpsError(gabimiGPS(error));
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
     );
   };
 
@@ -165,8 +167,11 @@ export const AppProvider = ({ children }) => {
     return perkthimet[gjuha][fusha] || fusha;
   };
 
+  // true vetëm kur GPS-i i dhënoi browser-i pozicionin REAL të përdoruesit
+  const esLokacioniReal = !!(userLocation && !userLocation.fallback);
+
   return (
-    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, riprovoGPS: kërkoGPS, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, t }}>
+    <AppContext.Provider value={{ darkMode, setDarkMode, gjuha, setGjuha, vleraKerkimi, setVleraKerkimi, userLocation, gpsError, riprovoGPS: kërkoGPS, përdoruesi, setPërdoruesi, biznesiIzgjedhur, setBiznesiIzgjedhur, afërMeje, setAfërMeje, esLokacioniReal, t }}>
       {children}
     </AppContext.Provider>
   );
