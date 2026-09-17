@@ -7,6 +7,22 @@ import { regjistroAudit } from './audit';
 import Foto from './Foto';
 import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
+import { MAP_CATEGORIES, kerkoNeGooglePlaces, normalizoQytetin } from './googlePlaces';
+
+const FORM_FILLIMTAR = {
+  emri: '', pershkrimi: '', oferta: '',
+  kategoria: '',
+  qyteti: '', adresa: '', lat: '', lng: '',
+  foto: '',
+  telefoni: '', whatsapp: '', website: '',
+};
+
+const MESAZHET_GOOGLE = {
+  'MUNGON_KEY': 'Vendosni dhe ruani Google Places API Key para kërkimit.',
+  'API_I_PAKTIVIZUAR': 'Places API (New) nuk është aktivizuar ose ky key nuk ka leje.',
+  'KEY_I_GABUAR': 'API key nuk është i vlefshëm ose kërkesa nuk u pranua.',
+  'GABIM_RRJETI': 'Kërkimi në Google dështoi. Kontrolloni lidhjen dhe provoni përsëri.',
+};
 
 // ===== REGJISTRIMI I BIZNESIT — WIZARD me 6 HAPA (spec B18) =====
 // 1.Info 2.Kategori 3.Lokacion+GPS 4.Foto 5.Kontakt 6.Review & Submit
@@ -17,15 +33,19 @@ function ShtoBiznes() {
   const { lista: qytetet } = useQyteteve();
 
   const [hapi, setHapi] = useState(1);
-  const [form, setForm] = useState({
-    emri: '', pershkrimi: '', oferta: '',
-    kategoria: '',
-    qyteti: '', adresa: '', lat: '', lng: '',
-    foto: '',
-    telefoni: '', whatsapp: '', website: '',
-  });
+  const [form, setForm] = useState(FORM_FILLIMTAR);
   const [loading, setLoading] = useState(false);
   const [mesazhi, setMesazhi] = useState({ tekst: '', gabim: false });
+  const [googleQuery, setGoogleQuery] = useState('');
+  const [googleResults, setGoogleResults] = useState([]);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState('');
+  const [googleKey, setGoogleKey] = useState(() => (
+    typeof localStorage !== 'undefined' ? localStorage.getItem('GOOGLE_PLACES_API_KEY') || '' : ''
+  ));
+  const [googleKeyRuajtur, setGoogleKeyRuajtur] = useState(() => (
+    typeof localStorage !== 'undefined' && !!localStorage.getItem('GOOGLE_PLACES_API_KEY')
+  ));
 
   const hapet = [
     { id: 1, emri: 'Info' },
@@ -37,6 +57,70 @@ function ShtoBiznes() {
   ];
 
   const ndrysho = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const ruajGoogleKey = () => {
+    const key = googleKey.trim();
+    if (!key) {
+      localStorage.removeItem('GOOGLE_PLACES_API_KEY');
+      setGoogleKeyRuajtur(false);
+      setGoogleError('Shkruani API key para se ta ruani.');
+      return;
+    }
+    localStorage.setItem('GOOGLE_PLACES_API_KEY', key);
+    setGoogleKeyRuajtur(true);
+    setGoogleError('');
+  };
+
+  const kerkoBiznesin = async () => {
+    if (!googleQuery.trim()) {
+      setGoogleError('Shkruani emrin e biznesit që dëshironi të kërkoni.');
+      return;
+    }
+    setGoogleLoading(true);
+    setGoogleError('');
+    setGoogleResults([]);
+    try {
+      const rezultatet = await kerkoNeGooglePlaces(googleQuery);
+      setGoogleResults(rezultatet);
+      if (!rezultatet.length) setGoogleError('Nuk u gjet asnjë biznes. Provoni një emër tjetër.');
+    } catch (error) {
+      setGoogleError(MESAZHET_GOOGLE[error.message] || MESAZHET_GOOGLE['GABIM_RRJETI']);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const zgjidhBiznesinGoogle = (place) => {
+    const emri = typeof place.displayName === 'string' ? place.displayName : place.displayName?.text;
+    const adresa = place.formattedAddress || '';
+    setForm((f) => ({
+      ...f,
+      emri: emri || f.emri,
+      kategoria: MAP_CATEGORIES[place.primaryType] || f.kategoria,
+      qyteti: normalizoQytetin(adresa) || f.qyteti,
+      adresa: adresa || f.adresa,
+      lat: place.location?.latitude != null ? String(place.location.latitude) : f.lat,
+      lng: place.location?.longitude != null ? String(place.location.longitude) : f.lng,
+      telefoni: place.internationalPhoneNumber || f.telefoni,
+      whatsapp: place.internationalPhoneNumber || f.whatsapp,
+      website: place.websiteUri || f.website,
+    }));
+    setGoogleQuery(emri || googleQuery);
+    setGoogleResults([]);
+    setGoogleError('');
+    setHapi(1);
+  };
+
+  // Pas suksesit pastrohet edhe mesazhi; përndryshe ekrani i suksesit
+  // do të vazhdonte të renderohej edhe pasi përdoruesi shtypte butonin.
+  const handleShtoEdheNje = () => {
+    setMesazhi({ tekst: '', gabim: false });
+    setHapi(1);
+    setForm(FORM_FILLIMTAR);
+    setGoogleQuery('');
+    setGoogleResults([]);
+    setGoogleError('');
+  };
 
   // BUTONI "POZICIONI IM" (kërkesa e përdoruesit): merr pozicionin e biznesit nga
   // GPS-i (ose qyteti manual) — PA shkruar asnjë numër lat/lng
@@ -110,7 +194,7 @@ function ShtoBiznes() {
       regjistroAudit('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria, qyteti: form.qyteti });
       ekzekutoNgjarjen('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria });
       setMesazhi({ tekst: `✅ "${form.emri}" u dërgua për miratim! Do të shfaqet publike sapo admini ta konfirmojë.`, gabim: false });
-      setForm({ emri: '', pershkrimi: '', oferta: '', kategoria: '', qyteti: '', adresa: '', lat: '', lng: '', foto: '', telefoni: '', whatsapp: '', website: '' });
+      setForm(FORM_FILLIMTAR);
       setHapi(1);
     } catch (error) {
       console.error("Gabim gjatë shtimit:", error);
@@ -141,7 +225,7 @@ function ShtoBiznes() {
         <div style={{ fontSize: '54px', marginBottom: '12px' }}>✅</div>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '800', color: stiliTekstit }}>U dërgua për miratim!</h2>
         <p style={{ color: '#8e8e93', fontSize: '14px', maxWidth: '400px', margin: '0 auto 20px auto' }}>{mesazhi.tekst}</p>
-        <button onClick={() => setHapi(1)} style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' }}>
+        <button onClick={handleShtoEdheNje} style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' }}>
           Shto edhe një biznes
         </button>
       </div>
@@ -154,6 +238,57 @@ function ShtoBiznes() {
 
         <h2 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: '800', textAlign: 'center', color: stiliTekstit }}>Shto Biznes të Ri 🏢</h2>
         <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#8e8e93', textAlign: 'center' }}>6 hapa të shpejtë — pas miratimit, biznesi shfaqet publike</p>
+
+        {/* Plotësimi automatik me Places API (New) */}
+        <section style={{ marginBottom: '22px', padding: '16px', borderRadius: '16px', border: `1px solid ${darkMode ? '#7c3aed70' : '#ddd6fe'}`, backgroundColor: darkMode ? '#7c3aed18' : '#f5f3ff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+            <strong style={{ color: stiliTekstit, fontSize: '15px' }}>⚡ Auto nga Google</strong>
+            <span style={{ color: googleKeyRuajtur ? '#16a34a' : '#8e8e93', fontSize: '11px', fontWeight: '700' }}>
+              {googleKeyRuajtur ? '● Key u ruajt' : '○ Kërkon API key'}
+            </span>
+          </div>
+          <p style={{ margin: '0 0 12px', color: '#8e8e93', fontSize: '12px', lineHeight: 1.45 }}>
+            Gjej biznesin dhe plotëso të dhënat automatikisht. API key ruhet vetëm në këtë browser.
+          </p>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '9px' }}>
+            <input type="password" value={googleKey} onChange={(e) => { setGoogleKey(e.target.value); setGoogleKeyRuajtur(false); }} placeholder="Google Places API Key"
+              aria-label="Google Places API Key"
+              style={{ minWidth: 0, flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, outline: 'none' }} />
+            <button type="button" onClick={ruajGoogleKey}
+              style={{ border: 'none', borderRadius: '10px', padding: '10px 13px', backgroundColor: '#7c3aed', color: '#fff', fontWeight: '800', cursor: 'pointer' }}>
+              Ruaj
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input type="search" value={googleQuery} onChange={(e) => setGoogleQuery(e.target.value)} placeholder="p.sh. Restaurant Liburnia Prishtinë"
+              aria-label="Kërko biznesin në Google"
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); kerkoBiznesin(); } }}
+              style={{ minWidth: 0, flex: 1, padding: '11px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, outline: 'none' }} />
+            <button type="button" onClick={kerkoBiznesin} disabled={googleLoading}
+              style={{ border: 'none', borderRadius: '10px', padding: '10px 14px', backgroundColor: '#3b82f6', color: '#fff', fontWeight: '800', cursor: googleLoading ? 'wait' : 'pointer', opacity: googleLoading ? 0.7 : 1 }}>
+              {googleLoading ? '...' : 'Kërko'}
+            </button>
+          </div>
+
+          {googleError && <p role="alert" style={{ margin: '10px 0 0', color: '#ef4444', fontSize: '12px', fontWeight: '700' }}>{googleError}</p>}
+
+          {googleResults.length > 0 && (
+            <div style={{ display: 'grid', gap: '7px', marginTop: '10px', maxHeight: '230px', overflowY: 'auto' }}>
+              {googleResults.map((place) => {
+                const emri = typeof place.displayName === 'string' ? place.displayName : place.displayName?.text;
+                return (
+                  <button key={place.id} type="button" onClick={() => zgjidhBiznesinGoogle(place)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, textAlign: 'left', cursor: 'pointer' }}>
+                    <span style={{ display: 'block', fontSize: '13px', fontWeight: '800' }}>{emri || 'Biznes pa emër'}</span>
+                    <span style={{ display: 'block', marginTop: '3px', color: '#8e8e93', fontSize: '11px', lineHeight: 1.35 }}>{place.formattedAddress || 'Adresë e padisponueshme'}{place.rating ? ` · ⭐ ${place.rating}` : ''}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         {/* Indikator i hapeve */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '24px' }}>
