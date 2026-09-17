@@ -1,13 +1,21 @@
 import { useState, useContext } from 'react';
 import { AppContext } from './AppContext';
 import { db } from "./firebase";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, doc, query, runTransaction, where, getDocs } from "firebase/firestore";
 import { useKategorite, useQyteteve } from './useKontenti';
 import { regjistroAudit } from './audit';
 import Foto from './Foto';
 import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
-import { MAP_CATEGORIES, kerkoNeGooglePlaces, normalizoQytetin } from './googlePlaces';
+import {
+  MAP_CATEGORIES,
+  fshiGooglePlacesApiKey,
+  googlePlaceDocumentId,
+  kerkoNeGooglePlaces,
+  merrGooglePlacesApiKey,
+  normalizoQytetin,
+  ruajGooglePlacesApiKey,
+} from './googlePlaces';
 
 const FORM_FILLIMTAR = {
   emri: '', pershkrimi: '', oferta: '',
@@ -15,6 +23,8 @@ const FORM_FILLIMTAR = {
   qyteti: '', adresa: '', lat: '', lng: '',
   foto: '',
   telefoni: '', whatsapp: '', website: '',
+  // Vendoset vetëm kur biznesi zgjidhet nga Google Places.
+  googlePlaceId: '',
 };
 
 const MESAZHET_GOOGLE = {
@@ -40,12 +50,8 @@ function ShtoBiznes() {
   const [googleResults, setGoogleResults] = useState([]);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
-  const [googleKey, setGoogleKey] = useState(() => (
-    typeof localStorage !== 'undefined' ? localStorage.getItem('GOOGLE_PLACES_API_KEY') || '' : ''
-  ));
-  const [googleKeyRuajtur, setGoogleKeyRuajtur] = useState(() => (
-    typeof localStorage !== 'undefined' && !!localStorage.getItem('GOOGLE_PLACES_API_KEY')
-  ));
+  const [googleKey, setGoogleKey] = useState(() => merrGooglePlacesApiKey());
+  const [googleKeyRuajtur, setGoogleKeyRuajtur] = useState(() => !!merrGooglePlacesApiKey());
 
   const hapet = [
     { id: 1, emri: 'Info' },
@@ -61,13 +67,22 @@ function ShtoBiznes() {
   const ruajGoogleKey = () => {
     const key = googleKey.trim();
     if (!key) {
-      localStorage.removeItem('GOOGLE_PLACES_API_KEY');
+      fshiGooglePlacesApiKey();
       setGoogleKeyRuajtur(false);
       setGoogleError('Shkruani API key para se ta ruani.');
       return;
     }
-    localStorage.setItem('GOOGLE_PLACES_API_KEY', key);
+    ruajGooglePlacesApiKey(key);
+    setGoogleKey(key);
     setGoogleKeyRuajtur(true);
+    setGoogleError('');
+  };
+
+  const handleFshiGoogleKey = () => {
+    fshiGooglePlacesApiKey();
+    setGoogleKey('');
+    setGoogleKeyRuajtur(false);
+    setGoogleResults([]);
     setGoogleError('');
   };
 
@@ -104,6 +119,7 @@ function ShtoBiznes() {
       telefoni: place.internationalPhoneNumber || f.telefoni,
       whatsapp: place.internationalPhoneNumber || f.whatsapp,
       website: place.websiteUri || f.website,
+      googlePlaceId: place.id || f.googlePlaceId,
     }));
     setGoogleQuery(emri || googleQuery);
     setGoogleResults([]);
@@ -156,12 +172,35 @@ function ShtoBiznes() {
     setHapi((x) => Math.min(6, x + 1));
   };
 
+  // Për bizneset e zgjedhura nga Google përdoret një ID deterministe dhe
+  // transaksion atomik: dy kërkesa konkurruese nuk mund të krijojnë dublikatë.
+  const ruajBiznesinMeDeduplikim = async (dataBiznesi) => {
+    if (!dataBiznesi.googlePlaceId) {
+      await addDoc(collection(db, 'bizneset'), {
+        ...dataBiznesi,
+        googlePlaceId: null,
+      });
+      return;
+    }
+
+    const docId = googlePlaceDocumentId(dataBiznesi.googlePlaceId);
+    const docRef = doc(db, 'bizneset', docId);
+
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(docRef);
+      if (docSnap.exists()) {
+        throw new Error('DUBLIKAT_GOOGLE');
+      }
+      transaction.create(docRef, dataBiznesi);
+    });
+  };
+
   const dërgoTëDhënat = async (e) => {
     e.preventDefault();
     // ANTI-ABUZ (spec S12, S18): maksimum 5 biznese për përdorues
     if (përdoruesi) {
       try {
-        const snap = await getDocs(query(collection(db, "bizneset"), where("uidPronari", "==", përdoruesi.uid)));
+        const snap = await getDocs(query(collection(db, 'bizneset'), where('uidPronari', '==', përdoruesi.uid)));
         if (snap.size >= 5) {
           setMesazhi({ tekst: `⛔ Kufiri u arrit: maksimum 5 biznese për llogari (keni ${snap.size}).`, gabim: true });
           return;
@@ -170,35 +209,50 @@ function ShtoBiznes() {
         console.warn('Kontrolli i kufirit s\u2019u krye:', err.message);
       }
     }
+
+    const dataBiznesi = {
+      emri: form.emri,
+      pershkrimi: form.pershkrimi,
+      kategoria: form.kategoria,
+      qyteti: form.qyteti,
+      adresa: form.adresa,
+      lat: form.lat ? Number(form.lat) : null,
+      lng: form.lng ? Number(form.lng) : null,
+      foto: form.foto,
+      oferta: form.oferta.trim(),
+      telefoni: form.telefoni,
+      whatsapp: form.whatsapp || form.telefoni,
+      website: form.website,
+      googlePlaceId: form.googlePlaceId || '',
+      // Projekti përdor këto emra/fjala kyçe; "statusi: pending" do të
+      // binte ndesh me firestore.rules dhe do të shfaqej publikisht.
+      status: 'pendshe',
+      shtuarMNga: përdoruesi ? përdoruesi.emri : 'Përdorues i panjohur',
+      uidPronari: përdoruesi ? përdoruesi.uid : 'anonim',
+      krijuarM: new Date().toISOString(),
+    };
+
     setLoading(true);
     setMesazhi({ tekst: '', gabim: false });
     try {
-      await addDoc(collection(db, "bizneset"), {
+      await ruajBiznesinMeDeduplikim(dataBiznesi);
+      regjistroAudit('shtim_biznesi', {
         emri: form.emri,
-        pershkrimi: form.pershkrimi,
         kategoria: form.kategoria,
         qyteti: form.qyteti,
-        adresa: form.adresa,
-        lat: form.lat ? Number(form.lat) : null,
-        lng: form.lng ? Number(form.lng) : null,
-        foto: form.foto,
-        oferta: form.oferta.trim(),
-        telefoni: form.telefoni,
-        whatsapp: form.whatsapp || form.telefoni,
-        website: form.website,
-        status: 'pendshe',
-        shtuarMNga: përdoruesi ? përdoruesi.emri : 'Përdorues i panjohur',
-        uidPronari: përdoruesi ? përdoruesi.uid : 'anonim',
-        krijuarM: new Date().toISOString(),
+        ngaGoogle: Boolean(form.googlePlaceId),
       });
-      regjistroAudit('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria, qyteti: form.qyteti });
       ekzekutoNgjarjen('shtim_biznesi', { emri: form.emri, kategoria: form.kategoria });
       setMesazhi({ tekst: `✅ "${form.emri}" u dërgua për miratim! Do të shfaqet publike sapo admini ta konfirmojë.`, gabim: false });
       setForm(FORM_FILLIMTAR);
       setHapi(1);
     } catch (error) {
-      console.error("Gabim gjatë shtimit:", error);
-      setMesazhi({ tekst: 'Ndodhi një gabim me Firebase. Provoni përsëri!', gabim: true });
+      console.error('Gabim gjatë shtimit:', error);
+      if (error.message === 'DUBLIKAT_GOOGLE') {
+        setMesazhi({ tekst: '⚠️ Ky biznes nga Google është regjistruar një herë në MyKosova!', gabim: true });
+      } else {
+        setMesazhi({ tekst: 'Ndodhi një gabim gjatë ruajtjes. Provoni përsëri.', gabim: true });
+      }
     } finally {
       setLoading(false);
     }
@@ -258,6 +312,10 @@ function ShtoBiznes() {
             <button type="button" onClick={ruajGoogleKey}
               style={{ border: 'none', borderRadius: '10px', padding: '10px 13px', backgroundColor: '#7c3aed', color: '#fff', fontWeight: '800', cursor: 'pointer' }}>
               Ruaj
+            </button>
+            <button type="button" onClick={handleFshiGoogleKey} disabled={!googleKey && !googleKeyRuajtur}
+              style={{ border: '1px solid #ef4444', borderRadius: '10px', padding: '10px 13px', backgroundColor: 'transparent', color: '#ef4444', fontWeight: '800', cursor: (!googleKey && !googleKeyRuajtur) ? 'not-allowed' : 'pointer', opacity: (!googleKey && !googleKeyRuajtur) ? 0.55 : 1 }}>
+              Fshi key
             </button>
           </div>
 
