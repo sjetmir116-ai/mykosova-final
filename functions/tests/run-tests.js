@@ -5,9 +5,21 @@ const sig = require('./test-paddle-signature');
 console.log('\n--- Bilancimi i makines së gjendjes ---');
 const billing = require('./test-billing');
 
-const teGjitha = [...sig.rezultate, ...billing.rezultate];
-const kaluan = teGjitha.filter((t) => t.ok).length;
-const dështuan = teGjitha.length - kaluan;
+console.log('\n=== IMPORTUESI MASIV (Google Places → Firestore) ===');
+const bulk = require('./test-bulk-import');
 
-console.log(`\n=== PËRFUNDIMI: ${kaluan} të kaluara, ${dështuan} GABIME ${dështuan ? '⚠️' : '✅ GJITHÇKA SAKTË'} ===`);
-process.exit(dështuan > 0 ? 1 : 0);
+// Testet e importuesit kanë pjesë asinkrone (klienti + Firestore fals).
+bulk
+  .ekzekuto()
+  .then(() => {
+    const teGjitha = [...sig.rezultate, ...billing.rezultate, ...bulk.rezultate];
+    const kaluan = teGjitha.filter((t) => t.ok).length;
+    const dështuan = teGjitha.length - kaluan;
+
+    console.log(`\n=== PËRFUNDIMI: ${kaluan} të kaluara, ${dështuan} GABIME ${dështuan ? '⚠️' : '✅ GJITHÇKA SAKTË'} ===`);
+    process.exit(dështuan > 0 ? 1 : 0);
+  })
+  .catch((e) => {
+    console.error('❌ Dështim i papritur te testet:', e);
+    process.exit(1);
+  });

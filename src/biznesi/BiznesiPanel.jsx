@@ -7,6 +7,7 @@ import { useReviews } from '../useReviews';
 import { usePaketa } from '../paketa';
 import { useOfertat, shtoOferta, fshiOfertu, esOfertaAktive } from '../useOfertat';
 import { db, fcn } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
 import { doc, updateDoc } from 'firebase/firestore';
 import { regjistroAudit } from '../audit';
 import { hapLinkun } from '../hapLinkun';
@@ -370,7 +371,7 @@ function Paketa({ bizneseve, paketa, darkMode, stiliTekstit, korniza }) {
     setDukeVepruar(paketaEre);
     setMesazhi('');
     try {
-      const res = await fcn.https.onCall('nisPagesen')({ biznesiId: bizneseve.id, paketa: paketaEre });
+      const res = await httpsCallable(fcn, 'nisPagesen')({ biznesiId: bizneseve.id, paketa: paketaEre });
       // Kthehu prapa te app-i pas mbarimit të pagesës
       window.location.href = res.data.url;
     } catch (err) {
@@ -385,7 +386,7 @@ function Paketa({ bizneseve, paketa, darkMode, stiliTekstit, korniza }) {
     setDukeVepruar('portal');
     setMesazhi('');
     try {
-      const res = await fcn.https.onCall('hapPortalin')({});
+      const res = await httpsCallable(fcn, 'hapPortalin')({});
       hapLinkun(res.data.url);
     } catch (err) {
       setMesazhi('❌ ' + (err?.message || err));
@@ -400,7 +401,7 @@ function Paketa({ bizneseve, paketa, darkMode, stiliTekstit, korniza }) {
     setDukeVepruar('anulo');
     setMesazhi('');
     try {
-      const res = await fcn.https.onCall('anuloSubscription')({ biznesiId: bizneseve.id, menjehere: false });
+      const res = await httpsCallable(fcn, 'anuloSubscription')({ biznesiId: bizneseve.id, menjehere: false });
       setMesazhi('✅ Abeti u anulua — ' + (res?.data?.statusi === 'expiring' ? 'paketa mbaron në fund të periodit.' : 'u anulua.'));
     } catch (err) {
       setMesazhi('❌ ' + (err?.error?.message || err?.message || err));
