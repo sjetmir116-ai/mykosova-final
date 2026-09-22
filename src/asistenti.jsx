@@ -253,7 +253,7 @@ function Asistenti() {
         const idPergjigjjes = idCounter.current++;
         setMesazhet((prev) => [
           ...prev,
-          { id: idPergjigjjes, tekst: pergjigjje.tekst, bizneset: pergjigjje.bizneset, ngaAsistenti: true },
+          { id: idPergjigjjes, tekst: pergjigjja.tekst, bizneset: pergjigjja.bizneset, ngaAsistenti: true },
         ]);
       } catch (e) {
         setMesazhet((prev) => [
