@@ -44,6 +44,26 @@ Pas kontrollit të repo-s, zgjidhja **më e shpejtë për lansim** është një
 **Admin SDK-ja e anashkalon rules-in** → `status: 'aprovar'` shkruhet direkt, me
 **një** shkrim për biznes. Kjo është arsyeja kryesore e zgjedhjes.
 
+> ### ⚠️ Përjashtim i përkohshëm: importi direkt nga browseri
+>
+> Derisa Service Account JSON / deploy-i i Functions të jetë gati, paneli
+> `src/admin/ImportMasiv.jsx` ka **një rrugë të dytë, të përkohshme**: butoni
+> **🚀 Ekzekuto Importin direkt nga Browseri**. Ai e bën gjithë punën në klient:
+> `fetch` → Google Places (New) Text Search → mapim qyteti/kategorie → `setDoc`
+> te `bizneset/google_{placeId}`.
+>
+> Kufizimet e pranuara me vetëdije (dhe arsyeja pse mbetet e përkohshme):
+> - çelësi merret nga `localStorage.GOOGLE_PLACES_API_KEY` → **duhet çelës me
+>   restriksion referrer-i**;
+> - `create` nga klienti lejohet vetëm me `status: 'pendshe'`, prandaj `aprovar`
+>   vendoset me një `updateDoc` të dytë (kalon vetëm nëse llogaria është admin);
+> - rezervimi atomik te `biznesetIndeks` s'shkruhet dot nga klienti → deduplikimi
+>   bëhet me indeks në memorie + `getDoc` para shkrimit (jo transaksional);
+> - tab-i duhet të mbetet i hapur gjatë importit.
+>
+> Sapo Functions të jetë live, ky seksion i kodit (i shënuar me
+> `⚠️ ZGJIDHJE E PËRKOHSHME`) hiqet dhe mbetet vetëm rruga callable.
+
 ### Pse edhe CLI edhe Callable?
 
 - **CLI** = zero deploy, zero timeout → mbushja e parë masive (gjithë Kosova) sot.
