@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { AppContext } from './AppContext';
 import { db } from "./firebase";
 import { collection, addDoc, doc, query, runTransaction, where, getDocs } from "firebase/firestore";
@@ -9,10 +9,14 @@ import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
 import {
   MAP_CATEGORIES,
+  eSigurtPerRuajtje,
   fshiGooglePlacesApiKey,
   googlePlaceDocumentId,
   kerkoNeGooglePlaces,
+  merrAtributinFotos,
   merrGooglePlacesApiKey,
+  merrReferencenFotos,
+  merrUrlFotos,
   normalizoQytetin,
   ruajGooglePlacesApiKey,
 } from './googlePlaces';
@@ -25,6 +29,10 @@ const FORM_FILLIMTAR = {
   telefoni: '', whatsapp: '', website: '',
   // Vendoset vetëm kur biznesi zgjidhet nga Google Places.
   googlePlaceId: '',
+  // Referenca e qëndrueshme e fotos (places/{id}/photos/{ref}) — lejon rigjenerimin
+  // e URL-së kur ajo e tanishmja skadon. Vetë URL-ja ruhet te 'foto'.
+  googleFotoRef: '',
+  googleFotoAutori: '',
 };
 
 const MESAZHET_GOOGLE = {
@@ -32,6 +40,7 @@ const MESAZHET_GOOGLE = {
   'API_I_PAKTIVIZUAR': 'Places API (New) nuk është aktivizuar ose ky key nuk ka leje.',
   'KEY_I_GABUAR': 'API key nuk është i vlefshëm ose kërkesa nuk u pranua.',
   'GABIM_RRJETI': 'Kërkimi në Google dështoi. Kontrolloni lidhjen dhe provoni përsëri.',
+  'FOTO_E_PASIGURT': 'Fotoja u refuzua për siguri (URL-ja përmbante një çelës).',
 };
 
 // ===== REGJISTRIMI I BIZNESIT — WIZARD me 6 HAPA (spec B18) =====
@@ -52,6 +61,11 @@ function ShtoBiznes() {
   const [googleError, setGoogleError] = useState('');
   const [googleKey, setGoogleKey] = useState(() => merrGooglePlacesApiKey());
   const [googleKeyRuajtur, setGoogleKeyRuajtur] = useState(() => !!merrGooglePlacesApiKey());
+  const [fotoDukeUngarkuar, setFotoDukeUngarkuar] = useState(false);
+  const [fotoNjoftim, setFotoNjoftim] = useState('');
+  // Mban referencën e kërkesës së fundit, që një përgjigje e vonuar e një
+  // biznesi të mëparshëm të mos e mbishkruajë foton e biznesit aktual.
+  const kerkesaAktiveEFotos = useRef('');
 
   const hapet = [
     { id: 1, emri: 'Info' },
@@ -108,6 +122,9 @@ function ShtoBiznes() {
   const zgjidhBiznesinGoogle = (place) => {
     const emri = typeof place.displayName === 'string' ? place.displayName : place.displayName?.text;
     const adresa = place.formattedAddress || '';
+    const fotoRef = merrReferencenFotos(place);
+    const fotoAutori = merrAtributinFotos(place);
+
     setForm((f) => ({
       ...f,
       emri: emri || f.emri,
@@ -120,11 +137,39 @@ function ShtoBiznes() {
       whatsapp: place.internationalPhoneNumber || f.whatsapp,
       website: place.websiteUri || f.website,
       googlePlaceId: place.id || f.googlePlaceId,
+      googleFotoRef: fotoRef,
+      googleFotoAutori: fotoAutori,
+      // Fotoja e mëparshme i përket biznesit të mëparshëm — pastrohet menjëherë.
+      foto: '',
     }));
     setGoogleQuery(emri || googleQuery);
     setGoogleResults([]);
     setGoogleError('');
+    setFotoNjoftim('');
     setHapi(1);
+
+    if (fotoRef) merrFotonNgaGoogle(fotoRef);
+    else setFotoNjoftim('Ky biznes s’ka foto në Google — do të përdoret foto automatike sipas kategorisë.');
+  };
+
+  // Fotoja merret pasi forma është plotësuar, që përdoruesi të mos presë.
+  // Nëse dështon, kjo NUK e bllokon regjistrimin — <Foto> dhe fotoja automatike
+  // sipas kategorisë e mbulojnë mungesën.
+  const merrFotonNgaGoogle = async (ref) => {
+    kerkesaAktiveEFotos.current = ref;
+    setFotoDukeUngarkuar(true);
+    setFotoNjoftim('');
+    try {
+      const url = await merrUrlFotos(ref);
+      // Mbrojtje nga gara: përdoruesi mund të ketë zgjedhur një biznes tjetër ndërkohë.
+      if (kerkesaAktiveEFotos.current !== ref) return;
+      setForm((f) => (f.googleFotoRef === ref ? { ...f, foto: url } : f));
+    } catch (error) {
+      if (kerkesaAktiveEFotos.current !== ref) return;
+      setFotoNjoftim(`${MESAZHET_GOOGLE[error.message] || MESAZHET_GOOGLE['GABIM_RRJETI']} Fotoja mund të shtohet manualisht te hapi 4.`);
+    } finally {
+      if (kerkesaAktiveEFotos.current === ref) setFotoDukeUngarkuar(false);
+    }
   };
 
   // Pas suksesit pastrohet edhe mesazhi; përndryshe ekrani i suksesit
@@ -136,6 +181,9 @@ function ShtoBiznes() {
     setGoogleQuery('');
     setGoogleResults([]);
     setGoogleError('');
+    setFotoNjoftim('');
+    setFotoDukeUngarkuar(false);
+    kerkesaAktiveEFotos.current = '';
   };
 
   // BUTONI "POZICIONI IM" (kërkesa e përdoruesit): merr pozicionin e biznesit nga
@@ -218,12 +266,17 @@ function ShtoBiznes() {
       adresa: form.adresa,
       lat: form.lat ? Number(form.lat) : null,
       lng: form.lng ? Number(form.lng) : null,
-      foto: form.foto,
+      // Rrjeta e fundit e sigurisë: fusha 'foto' lexohet publikisht, ndaj një URL
+      // me çelës brenda nuk ruhet kurrë (shih eSigurtPerRuajtje).
+      foto: form.foto && !eSigurtPerRuajtje(form.foto) ? '' : form.foto,
       oferta: form.oferta.trim(),
       telefoni: form.telefoni,
       whatsapp: form.whatsapp || form.telefoni,
       website: form.website,
       googlePlaceId: form.googlePlaceId || '',
+      // Referenca e qëndrueshme: URL-ja e fotos skadon, kjo jo — lejon rifreskimin.
+      googleFotoRef: form.googleFotoRef || '',
+      googleFotoAutori: form.googleFotoAutori || '',
       // Projekti përdor këto emra/fjala kyçe; "statusi: pending" do të
       // binte ndesh me firestore.rules dhe do të shfaqej publikisht.
       status: 'pendshe',
@@ -332,6 +385,20 @@ function ShtoBiznes() {
 
           {googleError && <p role="alert" style={{ margin: '10px 0 0', color: '#ef4444', fontSize: '12px', fontWeight: '700' }}>{googleError}</p>}
 
+          {/* Statusi i fotos — i dukshëm edhe kur përdoruesi s'është te hapi 4 */}
+          {(fotoDukeUngarkuar || (form.foto && form.googleFotoRef)) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '10px' }}>
+              {fotoDukeUngarkuar ? (
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#8e8e93' }}>⏳ Duke marrë foton nga Google…</span>
+              ) : (
+                <>
+                  <Foto src={form.foto} alt="Foto nga Google" ikona="📷" lartesia="42px" gjerësia="56px" style={{ borderRadius: '8px', fontSize: '20px', flexShrink: 0 }} />
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#16a34a' }}>✅ Fotoja u importua — shikoje te hapi 4</span>
+                </>
+              )}
+            </div>
+          )}
+
           {googleResults.length > 0 && (
             <div style={{ display: 'grid', gap: '7px', marginTop: '10px', maxHeight: '230px', overflowY: 'auto' }}>
               {googleResults.map((place) => {
@@ -423,9 +490,28 @@ function ShtoBiznes() {
           {hapi === 4 && (
             <>
               {fusha('Foto (URL i imazhit)', 'foto', 'url', 'https://...  (opsional — nëse s\u2019ka, zgjidhet automatikisht sipas kategorisë)')}
-              {form.foto && (
-                <Foto src={form.foto} alt="Preview" ikona="📷" lartesia="160px" style={{ borderRadius: '12px', fontSize: '42px' }} />
+
+              {fotoDukeUngarkuar && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '160px', borderRadius: '12px', border: `1px dashed ${stiliInputit}`, color: '#8e8e93', fontSize: '13px', fontWeight: '700' }}>
+                  ⏳ Duke marrë foton nga Google…
+                </div>
               )}
+
+              {!fotoDukeUngarkuar && form.foto && (
+                <div>
+                  <Foto src={form.foto} alt="Preview" ikona="📷" lartesia="160px" style={{ borderRadius: '12px', fontSize: '42px' }} />
+                  {form.googleFotoRef && (
+                    <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#8e8e93' }}>
+                      ⚡ Foto nga Google{form.googleFotoAutori ? ` · 📷 ${form.googleFotoAutori}` : ''}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {fotoNjoftim && (
+                <p style={{ margin: 0, fontSize: '12px', color: '#f59e0b', fontWeight: '700', lineHeight: 1.45 }}>{fotoNjoftim}</p>
+              )}
+
               <p style={{ margin: 0, fontSize: '12px', color: '#8e8e93' }}>Opsional — nëse lëreni bosh, platforma zgjedh foto automatikisht sipas kategorisë.</p>
             </>
           )}
@@ -451,7 +537,7 @@ function ShtoBiznes() {
                 ['GPS', form.lat && form.lng ? `${form.lat}, ${form.lng}` : 's\u2019ka'],
                 ['Telefoni', form.telefoni],
                 ['Oferta', form.oferta || '—'],
-                ['Foto', form.foto ? '✅' : 'automatike'],
+                ['Foto', form.foto ? (form.googleFotoRef ? '✅ nga Google' : '✅') : 'automatike'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', gap: '10px', fontSize: '13px', padding: '7px 0', borderBottom: `1px solid ${darkMode ? '#2d2d2d' : '#f2f2f7'}` }}>
                   <span style={{ color: '#8e8e93', fontWeight: '700', minWidth: '80px' }}>{k}:</span>

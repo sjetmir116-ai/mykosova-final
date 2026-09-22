@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestore';
 import { regjistroAudit } from '../audit';
 import { distancaKm } from '../distanca';
+import { ngaGoogle } from '../googlePlaces';
 
 // ===== RISK SCORE — detektim i rreziqeve te bizneset pendshe (spec Y17, Y19) =====
 // Kërkon: dublet emri+qytet, GPS afër (≤0.5km) me kategori të njëjtë, telefon dublet
@@ -54,6 +55,7 @@ function MenaxhoBizneset() {
   const { bizneset, loading } = useBizneset({ vetemAprovuar: false });
   const [kerkimi, setKerkimi] = useState('');
   const [filtrStatusi, setFiltrStatusi] = useState('teGjitha');
+  const [vetemGoogle, setVetemGoogle] = useState(false);
   const [editimi, setEditimi] = useState(null); // biznesi në editim
   const [dukeVepruar, setDukeVepruar] = useState(false);
   const [mesazhi, setMesazhi] = useState({ tekst: '', gabim: false });
@@ -66,8 +68,11 @@ function MenaxhoBizneset() {
   const filtra = bizneset.filter((b) => {
     const pasqyron = !kerkimi || normalizo(b.emri).includes(normalizo(kerkimi)) || normalizo(b.qyteti).includes(normalizo(kerkimi)) || normalizo(b.kategoria).includes(normalizo(kerkimi));
     const statusiOK = filtrStatusi === 'teGjitha' || (filtrStatusi === 'pendshe' ? b.status === 'pendshe' : b.status !== 'pendshe');
-    return pasqyron && statusiOK;
+    const burimiOK = !vetemGoogle || ngaGoogle(b);
+    return pasqyron && statusiOK && burimiOK;
   });
+
+  const numriNgaGoogle = bizneset.filter(ngaGoogle).length;
 
   const veprim = async (f, biznesi) => {
     if (f === 'fshi' && !window.confirm(`Të jeni i sigurt që doni ta fshini "${biznesi.emri}"? Kjo vepër nuk kthehet.`)) return;
@@ -156,6 +161,11 @@ function MenaxhoBizneset() {
             {s === 'teGjitha' ? 'Të gjitha' : s === 'pendshe' ? '⏳ Pendshe' : '✅ Aprovar'}
           </button>
         ))}
+        <button onClick={() => setVetemGoogle((v) => !v)}
+          title="Shfaq vetëm bizneset e importuara nga Google Places"
+          style={{ padding: '10px 16px', borderRadius: '12px', border: `1px solid ${vetemGoogle ? '#7c3aed' : korniza}`, backgroundColor: vetemGoogle ? '#7c3aed' : 'transparent', color: vetemGoogle ? '#fff' : stiliTekstit, fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
+          ⚡ Nga Google {numriNgaGoogle > 0 ? `(${numriNgaGoogle})` : ''}
+        </button>
       </div>
 
       {/* Tabela */}
@@ -177,6 +187,10 @@ function MenaxhoBizneset() {
                   </span>
                   {b.burimi === 'lokal' && (
                     <span style={{ fontSize: '10px', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#8e8e9320', color: '#8e8e93' }}>LOKAL</span>
+                  )}
+                  {ngaGoogle(b) && (
+                    <span title="Importuar automatikisht nga Google Places"
+                      style={{ fontSize: '10px', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#7c3aed20', color: '#7c3aed' }}>⚡ GOOGLE</span>
                   )}
                 </div>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#8e8e93' }}>

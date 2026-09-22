@@ -86,6 +86,36 @@ Veprimet e mbikëqyrura: regjistrim, hyrje, dalje, shtim/miratim/rifuzim/fshirje
 
 ---
 
+## ⚡ IMPORTIMI NGA GOOGLE PLACES
+
+Te **Shto Biznes** paneli "⚡ Auto nga Google" plotëson formularin nga Places API (New).
+API key-i ruhet **vetëm te `localStorage` i browser-it** — kurrë te Firestore dhe kurrë te repo.
+
+**Fushat që shtohen te dokumenti i biznesit:**
+
+| Fusha | Përshkrim |
+|-------|-----------|
+| `googlePlaceId` | ID-ja e vendit te Google. Prodhon ID deterministe (`google_<id>`) → deduplikim atomik |
+| `googleFotoRef` | Referenca e QËNDRUESHME e fotos (`places/{id}/photos/{ref}`) — nuk skadon |
+| `googleFotoAutori` | Autori i fotos (Google kërkon atribuim aty ku shfaqet fotoja) |
+| `foto` | URL-ja e shfaqshme e fotos (**jetëshkurtër** — shih më poshtë) |
+
+**Pse ruhen dy fusha për foton?**
+Places API (New) nuk kthen URL, por një *resource name*. URL-ja e imazhit (`photoUri`)
+merret veçmas dhe është jetëshkurtër. Prandaj ruhet edhe referenca e qëndrueshme:
+kur URL-ja vdes, fotoja mund të **rigjenerohet** pa u kërkuar përsëri biznesi.
+Nëse URL-ja dështon, `<Foto>` bie te gradient+ikona dhe `gjejFotoAutomatikisht`
+te fotoja sipas kategorisë — përdoruesi nuk sheh kurrë imazh të thyer.
+
+> 🔒 **Rregull sigurie:** fusha `foto` lexohet publikisht (`allow get/list: if true`).
+> Prandaj çelësi dërgohet vetëm si header `X-Goog-Api-Key`, kurrë te URL-ja, dhe
+> `eSigurtPerRuajtje()` bllokon ruajtjen e çdo URL-je që përmban `key=`/`api_key=`.
+
+Te **Paneli Admin → Menaxho Bizneset** këto biznese shënohen me badge-in `⚡ GOOGLE`
+dhe mund të filtrohen me butonin `⚡ Nga Google`.
+
+---
+
 ## 🧭 STRUKTURA E KODIT
 
 ```
