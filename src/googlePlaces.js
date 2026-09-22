@@ -16,9 +16,48 @@ export const CITIES_LIST = [
   'Prishtinë', 'Prizren', 'Pejë', 'Gjakovë', 'Ferizaj', 'Mitrovicë', 'Suharekë', 'Kamenicë',
 ];
 
+export const GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS = 2;
+export const GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS = 350;
+export const GOOGLE_PLACES_AUTOCOMPLETE_FIELD_MASK = [
+  'suggestions.placePrediction.placeId',
+  'suggestions.placePrediction.place',
+  'suggestions.placePrediction.text',
+  'suggestions.placePrediction.structuredFormat',
+  'suggestions.placePrediction.types',
+].join(',');
+export const GOOGLE_PLACES_DETAILS_FIELD_MASK = [
+  'id',
+  'displayName',
+  'formattedAddress',
+  'rating',
+  'primaryType',
+  'internationalPhoneNumber',
+  'websiteUri',
+  'location',
+  'photos',
+].join(',');
+
 // Guard-i e mban modulin të sigurt edhe gjatë SSR/testeve, ku localStorage mund të mungojë.
 function kaLocalStorage() {
   return typeof localStorage !== 'undefined';
+}
+
+function googlePlacesErrorNgaStatusi(status) {
+  if (status === 400) return 'KEY_I_GABUAR';
+  if (status === 403) return 'API_I_PAKTIVIZUAR';
+  return 'GABIM_RRJETI';
+}
+
+function lexoTekstinGoogle(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value.text === 'string') return value.text;
+  return '';
+}
+
+function pastroPlaceId(placeId) {
+  const vlera = String(placeId || '').trim();
+  return vlera.startsWith('places/') ? vlera.slice('places/'.length) : vlera;
 }
 
 export function merrGooglePlacesApiKey() {
@@ -36,6 +75,19 @@ export function fshiGooglePlacesApiKey() {
   if (kaLocalStorage()) {
     localStorage.removeItem('GOOGLE_PLACES_API_KEY');
   }
+}
+
+export function krijoGooglePlacesSessionToken() {
+  const cryptoObj = typeof globalThis !== 'undefined' ? globalThis.crypto : null;
+  if (cryptoObj && typeof cryptoObj.randomUUID === 'function') {
+    return cryptoObj.randomUUID();
+  }
+  if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
+    const buffer = new Uint32Array(4);
+    cryptoObj.getRandomValues(buffer);
+    return Array.from(buffer, (numri) => numri.toString(36).padStart(7, '0')).join('-');
+  }
+  return `session_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 // I njëjti Google Place ID prodhon gjithmonë të njëjtin dokument Firestore.
@@ -76,6 +128,97 @@ export function normalizoQytetin(address) {
     if (addrLower.includes(key)) return value;
   }
   return '';
+}
+
+export function normalizoSugjerimetAutocomplete(data) {
+  const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
+
+  return suggestions
+    .map((sugjerimi) => {
+      const prediction = sugjerimi?.placePrediction || sugjerimi || {};
+      const placeId = pastroPlaceId(prediction.placeId || prediction.place || '');
+      if (!placeId) return null;
+
+      const mainText = lexoTekstinGoogle(prediction.structuredFormat?.mainText);
+      const secondaryText = lexoTekstinGoogle(prediction.structuredFormat?.secondaryText);
+      const text = lexoTekstinGoogle(prediction.text) || [mainText, secondaryText].filter(Boolean).join(', ');
+
+      return {
+        placeId,
+        placeResource: prediction.place || `places/${placeId}`,
+        text: text || placeId,
+        mainText: mainText || text || placeId,
+        secondaryText,
+        types: Array.isArray(prediction.types) ? prediction.types : [],
+      };
+    })
+    .filter(Boolean);
+}
+
+export async function kerkoAutocompleteGooglePlaces(input, sessionToken = krijoGooglePlacesSessionToken()) {
+  const kerkimi = String(input || '').trim();
+  if (kerkimi.length < GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS) return [];
+
+  const apiKey = merrGooglePlacesApiKey();
+  if (!apiKey) throw new Error('MUNGON_KEY');
+
+  try {
+    const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': GOOGLE_PLACES_AUTOCOMPLETE_FIELD_MASK,
+      },
+      body: JSON.stringify({
+        input: kerkimi,
+        regionCode: 'XK',
+        includedRegionCodes: ['XK'],
+        languageCode: 'sq',
+        sessionToken,
+      }),
+    });
+
+    if (!response.ok) throw new Error(googlePlacesErrorNgaStatusi(response.status));
+
+    const data = await response.json();
+    return normalizoSugjerimetAutocomplete(data);
+  } catch (error) {
+    if (['KEY_I_GABUAR', 'API_I_PAKTIVIZUAR'].includes(error.message)) {
+      throw error;
+    }
+    throw new Error('GABIM_RRJETI');
+  }
+}
+
+export async function merrDetajetGooglePlace(placeId, sessionToken = '') {
+  const id = pastroPlaceId(placeId);
+  if (!id) return null;
+
+  const apiKey = merrGooglePlacesApiKey();
+  if (!apiKey) throw new Error('MUNGON_KEY');
+
+  const tokenQuery = sessionToken ? `?sessionToken=${encodeURIComponent(sessionToken)}` : '';
+  const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(id)}${tokenQuery}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': GOOGLE_PLACES_DETAILS_FIELD_MASK,
+      },
+    });
+
+    if (!response.ok) throw new Error(googlePlacesErrorNgaStatusi(response.status));
+
+    return await response.json();
+  } catch (error) {
+    if (['KEY_I_GABUAR', 'API_I_PAKTIVIZUAR'].includes(error.message)) {
+      throw error;
+    }
+    throw new Error('GABIM_RRJETI');
+  }
 }
 
 // ===== FOTOJA E VENDIT (Place Photos — New) =====
@@ -167,7 +310,7 @@ export async function kerkoNeGooglePlaces(query) {
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.primaryType,places.internationalPhoneNumber,places.websiteUri,places.location,places.photos',
+        'X-Goog-FieldMask': `places.${GOOGLE_PLACES_DETAILS_FIELD_MASK.replaceAll(',', ',places.')}`,
       },
       body: JSON.stringify({
         textQuery: kerkimi,
