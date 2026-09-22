@@ -7,6 +7,16 @@ import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestor
 import { regjistroAudit } from '../audit';
 import { distancaKm } from '../distanca';
 import { ngaGoogle } from '../googlePlaces';
+import { useQyteteve } from '../useKontenti';
+
+// ===== BURIMI GOOGLE — badge \u26a1 GOOGLE kur dokumenti ka googlePlaceId të vlefshëm =====
+// (jo null, jo bosh). Mbetet i pajtueshëm me ngaGoogle() për dokumentet e vjetra.
+function kaGooglePlaceId(biznesi) {
+  if (!biznesi) return false;
+  const id = biznesi.googlePlaceId;
+  if (id === null || id === undefined) return false;
+  return String(id).trim().length > 0;
+}
 
 // ===== RISK SCORE — detektim i rreziqeve te bizneset pendshe (spec Y17, Y19) =====
 // Kërkon: dublet emri+qytet, GPS afër (≤0.5km) me kategori të njëjtë, telefon dublet
@@ -53,8 +63,10 @@ function llogaritRisk(biznesi, teGjithe) {
 function MenaxhoBizneset() {
   const { darkMode } = useContext(AppContext);
   const { bizneset, loading } = useBizneset({ vetemAprovuar: false });
+  const { lista: qytetetLista } = useQyteteve();
   const [kerkimi, setKerkimi] = useState('');
   const [filtrStatusi, setFiltrStatusi] = useState('teGjitha');
+  const [filtrQyteti, setFiltrQyteti] = useState('teGjitha');
   const [vetemGoogle, setVetemGoogle] = useState(false);
   const [editimi, setEditimi] = useState(null); // biznesi në editim
   const [dukeVepruar, setDukeVepruar] = useState(false);
@@ -65,11 +77,29 @@ function MenaxhoBizneset() {
   const stiliTekstit = darkMode ? '#ffffff' : '#111827';
 
   const normalizo = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // Qytetet për dropdown: lista jonë e qyteteve + qytetet që dalin te bizneset (pa dublikate)
+  const qytetetPerFiltrim = (() => {
+    const parë = [];
+    const parëNorm = new Set();
+    const shto = (emri) => {
+      const v = String(emri || '').trim();
+      if (!v) return;
+      const n = normalizo(v);
+      if (parëNorm.has(n)) return;
+      parëNorm.add(n);
+      parë.push(v);
+    };
+    (qytetetLista || []).forEach((q) => shto(q && q.emri));
+    bizneset.forEach((b) => shto(b && b.qyteti));
+    return parë.sort((a, b) => a.localeCompare(b, 'sq'));
+  })();
+
   const filtra = bizneset.filter((b) => {
     const pasqyron = !kerkimi || normalizo(b.emri).includes(normalizo(kerkimi)) || normalizo(b.qyteti).includes(normalizo(kerkimi)) || normalizo(b.kategoria).includes(normalizo(kerkimi));
     const statusiOK = filtrStatusi === 'teGjitha' || (filtrStatusi === 'pendshe' ? b.status === 'pendshe' : b.status !== 'pendshe');
+    const qytetiOK = filtrQyteti === 'teGjitha' || normalizo(b.qyteti) === normalizo(filtrQyteti);
     const burimiOK = !vetemGoogle || ngaGoogle(b);
-    return pasqyron && statusiOK && burimiOK;
+    return pasqyron && statusiOK && qytetiOK && burimiOK;
   });
 
   const numriNgaGoogle = bizneset.filter(ngaGoogle).length;
@@ -155,12 +185,24 @@ function MenaxhoBizneset() {
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <input value={kerkimi} onChange={(e) => setKerkimi(e.target.value)} placeholder="🔍 Kërko emër, qytet, kategori..."
           style={{ flex: 1, minWidth: '200px', padding: '11px 16px', borderRadius: '12px', border: `1px solid ${korniza}`, backgroundColor: 'transparent', color: stiliTekstit, fontSize: '14px', outline: 'none' }} />
-        {['teGjitha', 'pendshe', 'aprovar'].map((s) => (
-          <button key={s} onClick={() => setFiltrStatusi(s)}
-            style={{ padding: '10px 16px', borderRadius: '12px', border: `1px solid ${filtrStatusi === s ? '#3b82f6' : korniza}`, backgroundColor: filtrStatusi === s ? '#3b82f6' : 'transparent', color: filtrStatusi === s ? '#fff' : stiliTekstit, fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
-            {s === 'teGjitha' ? 'Të gjitha' : s === 'pendshe' ? '⏳ Pendshe' : '✅ Aprovar'}
-          </button>
-        ))}
+        {/* Dropdown — filtrim sipas statusit */}
+        <select value={filtrStatusi} onChange={(e) => setFiltrStatusi(e.target.value)}
+          title="Filtro sipas statusit"
+          style={{ padding: '10px 14px', borderRadius: '12px', border: `1px solid ${filtrStatusi !== 'teGjitha' ? '#3b82f6' : korniza}`, backgroundColor: darkMode ? '#111827' : '#ffffff', color: stiliTekstit, fontWeight: '700', fontSize: '13px', outline: 'none', cursor: 'pointer' }}>
+          <option value="teGjitha">Të gjitha statuset</option>
+          <option value="pendshe">⏳ Pendshe</option>
+          <option value="aprovar">✅ Të aprovuara</option>
+        </select>
+
+        {/* Dropdown — filtrim sipas qytetit */}
+        <select value={filtrQyteti} onChange={(e) => setFiltrQyteti(e.target.value)}
+          title="Filtro sipas qytetit"
+          style={{ padding: '10px 14px', borderRadius: '12px', border: `1px solid ${filtrQyteti !== 'teGjitha' ? '#3b82f6' : korniza}`, backgroundColor: darkMode ? '#111827' : '#ffffff', color: stiliTekstit, fontWeight: '700', fontSize: '13px', outline: 'none', cursor: 'pointer', maxWidth: '200px' }}>
+          <option value="teGjitha">🏙️ Të gjitha qytetet</option>
+          {qytetetPerFiltrim.map((q) => (
+            <option key={q} value={q}>{q}</option>
+          ))}
+        </select>
         <button onClick={() => setVetemGoogle((v) => !v)}
           title="Shfaq vetëm bizneset e importuara nga Google Places"
           style={{ padding: '10px 16px', borderRadius: '12px', border: `1px solid ${vetemGoogle ? '#7c3aed' : korniza}`, backgroundColor: vetemGoogle ? '#7c3aed' : 'transparent', color: vetemGoogle ? '#fff' : stiliTekstit, fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}>
@@ -188,8 +230,8 @@ function MenaxhoBizneset() {
                   {b.burimi === 'lokal' && (
                     <span style={{ fontSize: '10px', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#8e8e9320', color: '#8e8e93' }}>LOKAL</span>
                   )}
-                  {ngaGoogle(b) && (
-                    <span title="Importuar automatikisht nga Google Places"
+                  {(kaGooglePlaceId(b) || ngaGoogle(b)) && (
+                    <span title={kaGooglePlaceId(b) ? `Google Place ID: ${b.googlePlaceId}` : 'Importuar automatikisht nga Google Places'}
                       style={{ fontSize: '10px', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#7c3aed20', color: '#7c3aed' }}>⚡ GOOGLE</span>
                   )}
                 </div>
