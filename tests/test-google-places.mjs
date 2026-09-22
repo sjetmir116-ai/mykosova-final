@@ -3,6 +3,10 @@ import { beforeEach, describe, it } from 'node:test';
 import {
   normalizoQytetin,
   MAP_CATEGORIES,
+  GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS,
+  GOOGLE_PLACES_AUTOCOMPLETE_FIELD_MASK,
+  GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS,
+  GOOGLE_PLACES_DETAILS_FIELD_MASK,
   googlePlaceDocumentId,
   merrGooglePlacesApiKey,
   ruajGooglePlacesApiKey,
@@ -13,6 +17,10 @@ import {
   eSigurtPerRuajtje,
   merrUrlFotos,
   ngaGoogle,
+  krijoGooglePlacesSessionToken,
+  normalizoSugjerimetAutocomplete,
+  kerkoAutocompleteGooglePlaces,
+  merrDetajetGooglePlace,
 } from '../src/googlePlaces.js';
 
 // Imitimi i localStorage për mjedisin Node të testit.
@@ -153,6 +161,165 @@ describe('Fotoja nga Google — referenca dhe siguria', () => {
     global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ photoUri: 'https://x.com/a?key=SEKRET' }) });
     await assert.rejects(() => merrUrlFotos(REF), /FOTO_E_PASIGURT/);
     delete global.fetch;
+  });
+});
+
+describe('Autocomplete me Places API (New)', () => {
+  beforeEach(() => {
+    global.localStorage.clear();
+    delete global.fetch;
+  });
+
+  it('duhet të ketë prag dhe debounce të qëndrueshëm për UX', () => {
+    assert.strictEqual(GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS, 2);
+    assert.strictEqual(GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS, 350);
+  });
+
+  it('duhet të krijojë session tokens unikë për faturim korrekt të Google', () => {
+    const a = krijoGooglePlacesSessionToken();
+    const b = krijoGooglePlacesSessionToken();
+    assert.ok(a.length >= 10);
+    assert.ok(b.length >= 10);
+    assert.notStrictEqual(a, b);
+  });
+
+  it('duhet të normalizojë sugjerimet nga places:autocomplete', () => {
+    const rezultatet = normalizoSugjerimetAutocomplete({
+      suggestions: [{
+        placePrediction: {
+          place: 'places/ChIJ38V7',
+          placeId: 'ChIJ38V7',
+          text: { text: 'Restaurant Liburnia, Prishtinë' },
+          structuredFormat: {
+            mainText: { text: 'Restaurant Liburnia' },
+            secondaryText: { text: 'Prishtinë, Kosovë' },
+          },
+          types: ['restaurant', 'food'],
+        },
+      }],
+    });
+
+    assert.strictEqual(rezultatet.length, 1);
+    assert.deepStrictEqual(rezultatet[0], {
+      placeId: 'ChIJ38V7',
+      placeResource: 'places/ChIJ38V7',
+      text: 'Restaurant Liburnia, Prishtinë',
+      mainText: 'Restaurant Liburnia',
+      secondaryText: 'Prishtinë, Kosovë',
+      types: ['restaurant', 'food'],
+    });
+  });
+
+  it('duhet të filtrojë sugjerimet pa placeId dhe të mbështesë place resource', () => {
+    const rezultatet = normalizoSugjerimetAutocomplete({
+      suggestions: [
+        { placePrediction: { text: { text: 'Pa ID' } } },
+        { placePrediction: { place: 'places/ABC123', text: { text: 'ABC Market' } } },
+      ],
+    });
+
+    assert.strictEqual(rezultatet.length, 1);
+    assert.strictEqual(rezultatet[0].placeId, 'ABC123');
+    assert.strictEqual(rezultatet[0].mainText, 'ABC Market');
+  });
+
+  it('duhet të kthejë listë bosh për input shumë të shkurtër pa thirrur fetch', async () => {
+    let uThirr = false;
+    global.fetch = async () => { uThirr = true; };
+    const rezultatet = await kerkoAutocompleteGooglePlaces('a', 'token-1');
+    assert.deepStrictEqual(rezultatet, []);
+    assert.strictEqual(uThirr, false);
+  });
+
+  it('duhet të kërkojë API key para autocomplete', async () => {
+    await assert.rejects(() => kerkoAutocompleteGooglePlaces('Liburnia', 'token-1'), /MUNGON_KEY/);
+  });
+
+  it('duhet të thërrasë places:autocomplete me sessionToken, region XK dhe field mask', async () => {
+    ruajGooglePlacesApiKey('key_sekret');
+    let urlEThirrur = '';
+    let opsionet = null;
+    global.fetch = async (url, opts) => {
+      urlEThirrur = url;
+      opsionet = opts;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          suggestions: [{ placePrediction: { placeId: 'ChIJ1', text: { text: 'Kafene Prishtinë' } } }],
+        }),
+      };
+    };
+
+    const rezultatet = await kerkoAutocompleteGooglePlaces('Kafene', 'session-123');
+    const body = JSON.parse(opsionet.body);
+
+    assert.strictEqual(urlEThirrur, 'https://places.googleapis.com/v1/places:autocomplete');
+    assert.strictEqual(opsionet.method, 'POST');
+    assert.strictEqual(opsionet.headers['X-Goog-Api-Key'], 'key_sekret');
+    assert.strictEqual(opsionet.headers['X-Goog-FieldMask'], GOOGLE_PLACES_AUTOCOMPLETE_FIELD_MASK);
+    assert.deepStrictEqual(body, {
+      input: 'Kafene',
+      regionCode: 'XK',
+      includedRegionCodes: ['XK'],
+      languageCode: 'sq',
+      sessionToken: 'session-123',
+    });
+    assert.strictEqual(rezultatet[0].placeId, 'ChIJ1');
+  });
+
+  it('duhet të përkthejë gabimet e autocomplete nga Google dhe rrjeti', async () => {
+    ruajGooglePlacesApiKey('key_sekret');
+    const rastet = [[400, 'KEY_I_GABUAR'], [403, 'API_I_PAKTIVIZUAR'], [500, 'GABIM_RRJETI']];
+    for (const [status, pritet] of rastet) {
+      global.fetch = async () => ({ ok: false, status, json: async () => ({}) });
+      await assert.rejects(() => kerkoAutocompleteGooglePlaces('Liburnia', 'token-1'), new RegExp(pritet), `statusi ${status}`);
+    }
+    global.fetch = async () => { throw new Error('offline'); };
+    await assert.rejects(() => kerkoAutocompleteGooglePlaces('Liburnia', 'token-1'), /GABIM_RRJETI/);
+  });
+
+  it('duhet të marrë detajet e place me sessionToken dhe field mask', async () => {
+    ruajGooglePlacesApiKey('key_sekret');
+    let urlEThirrur = '';
+    let opsionet = null;
+    global.fetch = async (url, opts) => {
+      urlEThirrur = url;
+      opsionet = opts;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'ChIJ38V7', displayName: { text: 'Liburnia' } }),
+      };
+    };
+
+    const place = await merrDetajetGooglePlace('ChIJ38V7', 'session-123');
+
+    assert.strictEqual(urlEThirrur, 'https://places.googleapis.com/v1/places/ChIJ38V7?sessionToken=session-123');
+    assert.strictEqual(opsionet.method, 'GET');
+    assert.strictEqual(opsionet.headers['X-Goog-Api-Key'], 'key_sekret');
+    assert.strictEqual(opsionet.headers['X-Goog-FieldMask'], GOOGLE_PLACES_DETAILS_FIELD_MASK);
+    assert.strictEqual(place.displayName.text, 'Liburnia');
+  });
+
+  it('duhet të pranojë place resource dhe të përkthejë gabimet e detajeve', async () => {
+    ruajGooglePlacesApiKey('key_sekret');
+    let urlEThirrur = '';
+    global.fetch = async (url) => {
+      urlEThirrur = url;
+      return { ok: true, status: 200, json: async () => ({ id: 'ABC123' }) };
+    };
+    const place = await merrDetajetGooglePlace('places/ABC123');
+    assert.strictEqual(urlEThirrur, 'https://places.googleapis.com/v1/places/ABC123');
+    assert.strictEqual(place.id, 'ABC123');
+
+    const rastet = [[400, 'KEY_I_GABUAR'], [403, 'API_I_PAKTIVIZUAR'], [404, 'GABIM_RRJETI']];
+    for (const [status, pritet] of rastet) {
+      global.fetch = async () => ({ ok: false, status, json: async () => ({}) });
+      await assert.rejects(() => merrDetajetGooglePlace('ABC123'), new RegExp(pritet), `statusi ${status}`);
+    }
+    global.fetch = async () => { throw new Error('offline'); };
+    await assert.rejects(() => merrDetajetGooglePlace('ABC123'), /GABIM_RRJETI/);
   });
 });
 

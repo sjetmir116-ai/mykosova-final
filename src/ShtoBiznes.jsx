@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from 'react';
+import { useState, useContext, useRef, useEffect } from 'react';
 import { AppContext } from './AppContext';
 import { db } from "./firebase";
 import { collection, addDoc, doc, query, runTransaction, where, getDocs } from "firebase/firestore";
@@ -8,12 +8,16 @@ import Foto from './Foto';
 import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
 import {
+  GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS,
+  GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS,
   MAP_CATEGORIES,
   eSigurtPerRuajtje,
   fshiGooglePlacesApiKey,
   googlePlaceDocumentId,
-  kerkoNeGooglePlaces,
+  kerkoAutocompleteGooglePlaces,
+  krijoGooglePlacesSessionToken,
   merrAtributinFotos,
+  merrDetajetGooglePlace,
   merrGooglePlacesApiKey,
   merrReferencenFotos,
   merrUrlFotos,
@@ -63,9 +67,16 @@ function ShtoBiznes() {
   const [googleKeyRuajtur, setGoogleKeyRuajtur] = useState(() => !!merrGooglePlacesApiKey());
   const [fotoDukeUngarkuar, setFotoDukeUngarkuar] = useState(false);
   const [fotoNjoftim, setFotoNjoftim] = useState('');
+  const [googleActiveIndex, setGoogleActiveIndex] = useState(-1);
+  const [googleListOpen, setGoogleListOpen] = useState(false);
   // Mban referencën e kërkesës së fundit, që një përgjigje e vonuar e një
   // biznesi të mëparshëm të mos e mbishkruajë foton e biznesit aktual.
   const kerkesaAktiveEFotos = useRef('');
+  const googleSessionTokenRef = useRef('');
+  const kerkesaAktiveAutocomplete = useRef(0);
+  const anashkaloAutocompleteNgaZgjedhja = useRef(false);
+  const googleAutocompleteInputId = 'google-places-autocomplete-input';
+  const googleAutocompleteListId = 'google-places-autocomplete-listbox';
 
   const hapet = [
     { id: 1, emri: 'Info' },
@@ -92,30 +103,178 @@ function ShtoBiznes() {
     setGoogleError('');
   };
 
+  const siguroGoogleSessionToken = () => {
+    if (!googleSessionTokenRef.current) {
+      googleSessionTokenRef.current = krijoGooglePlacesSessionToken();
+    }
+    return googleSessionTokenRef.current;
+  };
+
+  const mbyllGoogleSugjerimet = () => {
+    setGoogleListOpen(false);
+    setGoogleActiveIndex(-1);
+  };
+
+  const vendosSugjerimetGoogle = (rezultatet) => {
+    setGoogleResults(rezultatet);
+    setGoogleListOpen(rezultatet.length > 0);
+    setGoogleActiveIndex(rezultatet.length > 0 ? 0 : -1);
+  };
+
   const handleFshiGoogleKey = () => {
     fshiGooglePlacesApiKey();
     setGoogleKey('');
     setGoogleKeyRuajtur(false);
     setGoogleResults([]);
     setGoogleError('');
+    mbyllGoogleSugjerimet();
+    googleSessionTokenRef.current = '';
+    kerkesaAktiveAutocomplete.current += 1;
   };
 
   const kerkoBiznesin = async () => {
-    if (!googleQuery.trim()) {
+    const kerkimi = googleQuery.trim();
+    if (!kerkimi) {
       setGoogleError('Shkruani emrin e biznesit që dëshironi të kërkoni.');
       return;
     }
+    if (kerkimi.length < GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS) {
+      setGoogleError(`Shkruani së paku ${GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS} karaktere për autocomplete.`);
+      return;
+    }
+
+    const token = siguroGoogleSessionToken();
+    const kerkesaId = ++kerkesaAktiveAutocomplete.current;
     setGoogleLoading(true);
     setGoogleError('');
     setGoogleResults([]);
     try {
-      const rezultatet = await kerkoNeGooglePlaces(googleQuery);
-      setGoogleResults(rezultatet);
-      if (!rezultatet.length) setGoogleError('Nuk u gjet asnjë biznes. Provoni një emër tjetër.');
+      const rezultatet = await kerkoAutocompleteGooglePlaces(kerkimi, token);
+      if (kerkesaAktiveAutocomplete.current !== kerkesaId) return;
+      vendosSugjerimetGoogle(rezultatet);
+      if (!rezultatet.length) setGoogleError('Nuk u gjet asnjë sugjerim. Provoni një emër tjetër.');
+    } catch (error) {
+      if (kerkesaAktiveAutocomplete.current !== kerkesaId) return;
+      mbyllGoogleSugjerimet();
+      setGoogleError(MESAZHET_GOOGLE[error.message] || MESAZHET_GOOGLE['GABIM_RRJETI']);
+    } finally {
+      if (kerkesaAktiveAutocomplete.current === kerkesaId) setGoogleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const kerkimi = googleQuery.trim();
+
+    if (anashkaloAutocompleteNgaZgjedhja.current) {
+      anashkaloAutocompleteNgaZgjedhja.current = false;
+      return undefined;
+    }
+
+    if (!kerkimi) {
+      kerkesaAktiveAutocomplete.current += 1;
+      googleSessionTokenRef.current = '';
+      setGoogleResults([]);
+      setGoogleError('');
+      setGoogleLoading(false);
+      mbyllGoogleSugjerimet();
+      return undefined;
+    }
+
+    if (kerkimi.length < GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS) {
+      kerkesaAktiveAutocomplete.current += 1;
+      setGoogleResults([]);
+      setGoogleError('');
+      setGoogleLoading(false);
+      mbyllGoogleSugjerimet();
+      return undefined;
+    }
+
+    const token = siguroGoogleSessionToken();
+    const kerkesaId = ++kerkesaAktiveAutocomplete.current;
+    setGoogleLoading(true);
+    setGoogleError('');
+
+    const timer = setTimeout(async () => {
+      try {
+        const rezultatet = await kerkoAutocompleteGooglePlaces(kerkimi, token);
+        if (kerkesaAktiveAutocomplete.current !== kerkesaId) return;
+        vendosSugjerimetGoogle(rezultatet);
+        if (!rezultatet.length) setGoogleError('Nuk u gjet asnjë sugjerim. Provoni një emër tjetër.');
+      } catch (error) {
+        if (kerkesaAktiveAutocomplete.current !== kerkesaId) return;
+        setGoogleResults([]);
+        mbyllGoogleSugjerimet();
+        setGoogleError(MESAZHET_GOOGLE[error.message] || MESAZHET_GOOGLE['GABIM_RRJETI']);
+      } finally {
+        if (kerkesaAktiveAutocomplete.current === kerkesaId) setGoogleLoading(false);
+      }
+    }, GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [googleQuery, googleKeyRuajtur]);
+
+  const handleGoogleQueryChange = (e) => {
+    setGoogleQuery(e.target.value);
+    if (googleResults.length) setGoogleListOpen(true);
+  };
+
+  const zgjidhSugjeriminGoogle = async (sugjerimi) => {
+    if (!sugjerimi?.placeId) return;
+
+    const token = googleSessionTokenRef.current || siguroGoogleSessionToken();
+    kerkesaAktiveAutocomplete.current += 1;
+    setGoogleLoading(true);
+    setGoogleError('');
+    mbyllGoogleSugjerimet();
+
+    try {
+      const place = await merrDetajetGooglePlace(sugjerimi.placeId, token);
+      if (!place) {
+        setGoogleError('Nuk u arrit të merreshin detajet e biznesit nga Google.');
+        return;
+      }
+      googleSessionTokenRef.current = '';
+      zgjidhBiznesinGoogle(place);
     } catch (error) {
       setGoogleError(MESAZHET_GOOGLE[error.message] || MESAZHET_GOOGLE['GABIM_RRJETI']);
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleQueryKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      if (!googleResults.length) return;
+      e.preventDefault();
+      setGoogleListOpen(true);
+      setGoogleActiveIndex((i) => (i + 1) % googleResults.length);
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      if (!googleResults.length) return;
+      e.preventDefault();
+      setGoogleListOpen(true);
+      setGoogleActiveIndex((i) => (i <= 0 ? googleResults.length - 1 : i - 1));
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const indeksi = googleActiveIndex >= 0 ? googleActiveIndex : 0;
+      if (googleListOpen && googleResults[indeksi]) {
+        zgjidhSugjeriminGoogle(googleResults[indeksi]);
+      } else {
+        kerkoBiznesin();
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      kerkesaAktiveAutocomplete.current += 1;
+      setGoogleLoading(false);
+      mbyllGoogleSugjerimet();
     }
   };
 
@@ -142,9 +301,12 @@ function ShtoBiznes() {
       // Fotoja e mëparshme i përket biznesit të mëparshëm — pastrohet menjëherë.
       foto: '',
     }));
+    anashkaloAutocompleteNgaZgjedhja.current = true;
     setGoogleQuery(emri || googleQuery);
     setGoogleResults([]);
     setGoogleError('');
+    mbyllGoogleSugjerimet();
+    googleSessionTokenRef.current = '';
     setFotoNjoftim('');
     setHapi(1);
 
@@ -181,6 +343,9 @@ function ShtoBiznes() {
     setGoogleQuery('');
     setGoogleResults([]);
     setGoogleError('');
+    mbyllGoogleSugjerimet();
+    googleSessionTokenRef.current = '';
+    kerkesaAktiveAutocomplete.current += 1;
     setFotoNjoftim('');
     setFotoDukeUngarkuar(false);
     kerkesaAktiveEFotos.current = '';
@@ -372,15 +537,80 @@ function ShtoBiznes() {
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input type="search" value={googleQuery} onChange={(e) => setGoogleQuery(e.target.value)} placeholder="p.sh. Restaurant Liburnia Prishtinë"
-              aria-label="Kërko biznesin në Google"
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); kerkoBiznesin(); } }}
-              style={{ minWidth: 0, flex: 1, padding: '11px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, outline: 'none' }} />
-            <button type="button" onClick={kerkoBiznesin} disabled={googleLoading}
-              style={{ border: 'none', borderRadius: '10px', padding: '10px 14px', backgroundColor: '#3b82f6', color: '#fff', fontWeight: '800', cursor: googleLoading ? 'wait' : 'pointer', opacity: googleLoading ? 0.7 : 1 }}>
-              {googleLoading ? '...' : 'Kërko'}
-            </button>
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                id={googleAutocompleteInputId}
+                type="search"
+                value={googleQuery}
+                onChange={handleGoogleQueryChange}
+                onKeyDown={handleGoogleQueryKeyDown}
+                placeholder="p.sh. Restaurant Liburnia Prishtinë"
+                aria-label="Kërko biznesin në Google"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={googleListOpen && googleResults.length > 0}
+                aria-controls={googleAutocompleteListId}
+                aria-describedby="google-autocomplete-help"
+                aria-activedescendant={googleActiveIndex >= 0 && googleResults[googleActiveIndex] ? `${googleAutocompleteListId}-option-${googleActiveIndex}` : undefined}
+                autoComplete="off"
+                style={{ minWidth: 0, flex: 1, padding: '11px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, outline: 'none' }}
+              />
+              <button type="button" onClick={kerkoBiznesin} disabled={googleLoading}
+                aria-label="Kërko menjëherë në Google Places Autocomplete"
+                style={{ border: 'none', borderRadius: '10px', padding: '10px 14px', backgroundColor: '#3b82f6', color: '#fff', fontWeight: '800', cursor: googleLoading ? 'wait' : 'pointer', opacity: googleLoading ? 0.7 : 1 }}>
+                {googleLoading ? '...' : 'Kërko'}
+              </button>
+            </div>
+
+            <p id="google-autocomplete-help" style={{ margin: '6px 0 0', color: '#8e8e93', fontSize: '11px', lineHeight: 1.35 }}>
+              Sugjerimet vijnë me debounce {GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS}ms. Përdor ↑/↓ për lëvizje, Enter për zgjedhje dhe Escape për mbyllje.
+            </p>
+
+            {googleLoading && (
+              <p role="status" aria-live="polite" style={{ margin: '8px 0 0', color: '#8e8e93', fontSize: '12px', fontWeight: '700' }}>
+                ⏳ Duke kërkuar sugjerime nga Google…
+              </p>
+            )}
+
+            {googleListOpen && googleResults.length > 0 && (
+              <div
+                id={googleAutocompleteListId}
+                role="listbox"
+                aria-label="Sugjerime nga Google Places"
+                style={{ display: 'grid', gap: '7px', marginTop: '10px', maxHeight: '230px', overflowY: 'auto' }}
+              >
+                {googleResults.map((sugjerimi, index) => {
+                  const aktiv = index === googleActiveIndex;
+                  return (
+                    <button
+                      key={sugjerimi.placeId}
+                      id={`${googleAutocompleteListId}-option-${index}`}
+                      type="button"
+                      role="option"
+                      aria-selected={aktiv}
+                      onMouseEnter={() => setGoogleActiveIndex(index)}
+                      onMouseDown={(e) => { e.preventDefault(); zgjidhSugjeriminGoogle(sugjerimi); }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        border: `1px solid ${aktiv ? '#3b82f6' : stiliInputit}`,
+                        backgroundColor: aktiv ? (darkMode ? '#1e3a8a' : '#dbeafe') : stiliKartelës,
+                        color: stiliTekstit,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ display: 'block', fontSize: '13px', fontWeight: '800' }}>{sugjerimi.mainText || sugjerimi.text || 'Biznes pa emër'}</span>
+                      <span style={{ display: 'block', marginTop: '3px', color: aktiv && darkMode ? '#dbeafe' : '#8e8e93', fontSize: '11px', lineHeight: 1.35 }}>
+                        {sugjerimi.secondaryText || sugjerimi.text || 'Adresë e padisponueshme'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {googleError && <p role="alert" style={{ margin: '10px 0 0', color: '#ef4444', fontSize: '12px', fontWeight: '700' }}>{googleError}</p>}
@@ -399,20 +629,6 @@ function ShtoBiznes() {
             </div>
           )}
 
-          {googleResults.length > 0 && (
-            <div style={{ display: 'grid', gap: '7px', marginTop: '10px', maxHeight: '230px', overflowY: 'auto' }}>
-              {googleResults.map((place) => {
-                const emri = typeof place.displayName === 'string' ? place.displayName : place.displayName?.text;
-                return (
-                  <button key={place.id} type="button" onClick={() => zgjidhBiznesinGoogle(place)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid ' + stiliInputit, backgroundColor: stiliKartelës, color: stiliTekstit, textAlign: 'left', cursor: 'pointer' }}>
-                    <span style={{ display: 'block', fontSize: '13px', fontWeight: '800' }}>{emri || 'Biznes pa emër'}</span>
-                    <span style={{ display: 'block', marginTop: '3px', color: '#8e8e93', fontSize: '11px', lineHeight: 1.35 }}>{place.formattedAddress || 'Adresë e padisponueshme'}{place.rating ? ` · ⭐ ${place.rating}` : ''}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </section>
 
         {/* Indikator i hapeve */}
