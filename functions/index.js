@@ -13,6 +13,12 @@ exports.hapPortalin = require('./src/subscriptions').hapPortalin;
 exports.anuloSubscription = require('./src/subscriptions').anuloSubscription;
 exports.riperditStatistikat = require('./src/stats').riperditStatistikat;
 
+// Callables (Paneli Admin → Import Masiv nga Google Places)
+exports.katalogImportimi = require('./src/importues').katalogImportimi;
+exports.vleresoImportin = require('./src/importues').vleresoImportin;
+exports.importoMasiv = require('./src/importues').importoMasiv;
+exports.anuloImportin = require('./src/importues').anuloImportin;
+
 // ===== SCHEDULED: pastron ofertat e skaduara (1 herë/ditë, 03:00 UTC) =====
 exports.riperditOfertat = onSchedule({ schedule: '0 3 * * *', region: 'europe-west1' }, async () => {
   const db = getAdmin().firestore();

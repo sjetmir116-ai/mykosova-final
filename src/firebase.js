@@ -24,8 +24,11 @@ export const db = getFirestore(app);
 // Eksportimi i Auth (llogaritë e përdoruesve + adminit — credentials server-side te Firebase)
 export const auth = getAuth(app);
 
-// Eksportimi i Functions (pagesat: nisPagesen, hapPortalin, anuloSubscription, riperditStatistikat)
-export const fcn = getFunctions(app);
+// Eksportimi i Functions (pagesat + importi masiv nga Google Places)
+// RAJONI ËSHTË I DETYRUESHËM: të gjitha funksionet janë deploy-uar te 'europe-west1'
+// (shih functions/src/*.js). Pa këtë argument SDK-ja i kërkon te 'us-central1'
+// dhe ÇDO thirrje dështon me 404/CORS.
+export const fcn = getFunctions(app, 'europe-west1');
 
 // Inicializimi i Analytics — VETËM në mjedise që e mbështetin (browser me cookies).
 // Pattern-i zyrtar i Firebase: pa guard, shton "window is not defined" te

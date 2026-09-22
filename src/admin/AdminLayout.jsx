@@ -5,6 +5,7 @@ import { esAdminOse, dali } from '../auth';
 import Hyrja from './Hyrja';
 import Dashboard from './Dashboard';
 import MenaxhoBizneset from './MenaxhoBizneset';
+import ImportMasiv from './ImportMasiv';
 import Kontenti from './Kontenti';
 import Moderimi from './Moderimi';
 import Analitika from './Analitika';
@@ -54,6 +55,7 @@ function AdminLayout() {
   const itemsi = [
     { id: 'dashboard', emri: '📊 Dashboardi' },
     { id: 'menaxhim', emri: '🗂️ Menaxho Bizneset' },
+    { id: 'importmasiv', emri: '🚀 Import Masiv' },
     { id: 'rezervimet', emri: '📅 Rezervimet' },
     { id: 'paketa', emri: '💳 Paketa' },
     { id: 'perdoruesit', emri: '👥 Përdoruesit' },
@@ -104,6 +106,7 @@ function AdminLayout() {
       <main style={{ flex: 1, minWidth: '300px', padding: '28px', maxWidth: '1100px' }}>
         {seksioni === 'dashboard' && <Dashboard onNav={setSeksioni} />}
         {seksioni === 'menaxhim' && <MenaxhoBizneset />}
+        {seksioni === 'importmasiv' && <ImportMasiv />}
         {seksioni === 'rezervimet' && <BookingsAdmin />}
         {seksioni === 'paketa' && <PaketaAdmin />}
         {seksioni === 'perdoruesit' && <Perdoruesit />}
