@@ -22,7 +22,8 @@
 | 🚨 **Urgjenca** | SOS me GPS, 192/193/194/112, spital/farmaci |
 | ⭐ **Vlerësimet** | Yje + tekst + foto, "Ndihmoi?", raportim, moderim nga admini |
 | 📊 **Analytics** | 8 ngjarje live + Paneli Admin → Analitika (top biznese, kërkime, 7 ditë) |
-| ⚙️ **Paneli Admin** | `/admin` — Dashboard, Menaxho Bizneset, Rezervimet, Paketa, Përdoruesit, Kontenti, Moderimi, Analitika, Audit Log |
+| ⚙️ **Paneli Admin** | `/admin` — Dashboard, Menaxho Bizneset, **Import Masiv**, Rezervimet, Paketa, Përdoruesit, Kontenti, Moderimi, Analitika, Audit Log |
+| 🚀 **Import Masiv** | Qindra biznese nga Google Places njëherësh — mapim kategorish/qytetesh, deduplikim atomik, status automatik (shih `BULK_IMPORTER.md`) |
 | 🏢 **Paneli i Biznesit** | `/biznesi` — profili i biznesit (vetëm pronari) |
 
 **5 gjuhë:** SQ / EN / FR / DE / IT · **Dark/Light mode** · **PWA** (instalueshme, offline)
@@ -102,6 +103,14 @@ bash tests/run-all.sh
 Egzekuton: (1) kontrolli i konstanteve, (2) kontrolli i context-it, (3) **SSR smoke test** (renderon app-in e plotë server-side — çdo `X is not defined` kapet këtu), (4) build i prodhimit.
 
 Testet unitare të fazave (57 gjithsej): Haversine + renditja (30), koordinatat e atraksioneve (11), skadencat e ofertave (5), ngjarjet e analytics (7), link-et embed (4) — kryhen gjatë zhvillimit; suita `run-all.sh` është detyrim me çdo commit.
+
+Backend-i (Cloud Functions) ka suitën e vet — **175 testë**, pa rrjet dhe pa credentials:
+
+```bash
+cd functions && npm install && npm test
+```
+
+Mbulon signature-n e Paddle (6), makinën e gjendjes së billing-ut (10) dhe **importuesin masiv (159)**: katalogun e qyteteve/kategorive, rrjetën gjeografike, planifikuesin, mapimin Google→biznes, skorin e cilësisë, sigurinë e çelësave dhe deduplikimin transaksional (me Firestore fals, përfshirë garën mes dy shkrimeve).
 
 **Rregulli i projektit:** çdo funksion i ri testohet **para** se të kalojmë te tjetri.
 

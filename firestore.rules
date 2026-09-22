@@ -246,7 +246,22 @@ service cloud.firestore {
       allow update, delete: if esAdmin();
     }
 
-    // ===== 13. MBIKËNDREJTJE: çdo collection tjetër = E MBYLLUR =====
+    // ===== 13. IMPORTIMI MASIV (Bulk Importer — Google Places) =====
+    // importJobs: gjendja e punëve të importit (progres live për Panelin Admin).
+    //   Shkruhet VETËM nga Cloud Functions me Admin SDK (callable 'importoMasiv').
+    //   Klienti vetëm e LEXON, dhe vetëm nëse është admin.
+    match /importJobs/{jobId} {
+      allow get, list: if esAdmin();
+      allow write: if false;
+    }
+    // biznesetIndeks: rezervimet emër+qytet që mbajnë deduplikimin atomik.
+    // Askush nga klienti — as admini — s'e prek; e menaxhon vetëm transaksioni i backend-it.
+    match /biznesetIndeks/{celesi} {
+      allow read: if esAdmin();
+      allow write: if false;
+    }
+
+    // ===== 14. MBIKËNDREJTJE: çdo collection tjetër = E MBYLLUR =====
     match /{document=**} {
       allow read, write: if false;
     }
