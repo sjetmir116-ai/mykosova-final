@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { biznesetFillestare } from './teDhenat';
+import { normalizo, ndertoEmrinKerkim } from './kerkimi';
 
 // BURIMI I BASHKUAR I TË DHËNAVE
 // - biznesetFillestare (lokale): gjithmonë të disponueshme, edhe pa internet
@@ -31,11 +32,17 @@ export function useBizneset({ vetemAprovuar = true } = {}) {
   }, []);
 
   // Bashkim: bazë lokale + Firestore mbi të (emri i njëjtë → versioni Firestore fiton)
-  let bizneset = biznesetFillestare.map((b) => ({ ...b, burimi: 'lokal' }));
+  // v1.0.17 — 'emriKerkim' llogaritet edhe për dokumentet e vjetra (pa e shkruar në Firestore)
+  let bizneset = biznesetFillestare.map((b) => ({
+    ...b,
+    burimi: 'lokal',
+    emriKerkim: b.emriKerkim || ndertoEmrinKerkim(b),
+  }));
   for (const b of biznesetFirestore) {
-    const iEkzistenti = bizneset.find((l) => String(l.emri).toLowerCase() === String(b.emri).toLowerCase());
-    if (iEkzistenti) Object.assign(iEkzistenti, b, { burimi: 'cloud' });
-    else bizneset.push({ ...b, burimi: 'cloud' });
+    const kyçi = b.emriKerkim || normalizo(b.emri);
+    const iEkzistenti = bizneset.find((l) => (l.emriKerkim || normalizo(l.emri)) === kyçi);
+    if (iEkzistenti) Object.assign(iEkzistenti, b, { burimi: 'cloud', emriKerkim: kyçi });
+    else bizneset.push({ ...b, burimi: 'cloud', emriKerkim: kyçi });
   }
 
   if (vetemAprovuar) {

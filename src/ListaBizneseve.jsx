@@ -7,18 +7,15 @@ import { meDistanca, formatoDistancm } from './distanca';
 import QytetiManual from './QytetiManual';
 import Foto from './Foto';
 import { hapLinkun } from './hapLinkun';
+import { perputhetKerkimi } from './kerkimi';
 
 function ListaBizneseve() {
   const { setBiznesiIzgjedhur, userLocation, gpsError, gpsStatus, riprovoGPS, afërMeje, setAfërMeje, vendndodhja } = useContext(AppContext);
   const { bizneset, loading } = useBizneset();
   const [kerkimi, setKerkimi] = useState('');
 
-  const paAkcente = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const biznesetEFiltruara = bizneset.filter((b) => {
-    const fjala = paAkcente(kerkimi);
-    if (!fjala) return true;
-    return paAkcente(b.emri).includes(fjala) || paAkcente(b.qyteti).includes(fjala) || paAkcente(b.kategoria).includes(fjala);
-  });
+  // v1.0.17 — kërkimi përdor fushën 'emriKerkim' (ë→e, ç→c) me fallback për dokumentet e vjetra
+  const biznesetEFiltruara = bizneset.filter((b) => perputhetKerkimi(b, kerkimi));
 
   // AFËR MEJE (Faza 3): kur aktiv, rendit sipas distancës (Haversine) — pa GPS te fundi
   const biznesetETreguara = afërMeje

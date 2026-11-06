@@ -3,14 +3,16 @@ import { AppContext } from '../AppContext';
 import { useBizneset } from '../useBizneset';
 import { biznesetFillestare } from '../teDhenat';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { regjistroAudit } from '../audit';
+import { normalizo, ndertoEmrinKerkim } from '../kerkimi';
 
 function Dashboard({ onNav }) {
   const { darkMode } = useContext(AppContext);
   const { bizneset, loading, gabim } = useBizneset({ vetemAprovuar: false });
   const [dukeSinkronizuar, setDukeSinkronizuar] = useState(false);
   const [mesazhi, setMesazhi] = useState('');
+  const [lexime, setLexime] = useState(null); // kërkesat e bëra në sinkronizimin e fundit
 
   const stiliKartelës = darkMode ? '#1c1c1e' : '#ffffff';
   const korniza = darkMode ? '#2d2d2d' : '#e5e7eb';
@@ -35,22 +37,41 @@ function Dashboard({ onNav }) {
   const biznesetLokale = bizneset.filter((b) => b.burimi === 'lokal');
 
   // Ngarkon në cloud bizneset që ekzistojnë vetëm si lokale (pa dokument Firestore)
+  // ---------------------------------------------------------------
+  // RREGULLIMI v1.0.17 (Dashboard-i, "35 leximet"):
+  // Më parë bëhej një getDocs(query(where('emri','==',...))) PËR ÇDO biznes
+  // fillestar → 35 kërkesa/lexime radhazi (i ngadalshëm dhe i kushtueshëm).
+  // Tani bëhet NJË lex i vetëm i koleksionit dhe deduplikimi bëhet në memorie:
+  //   35 lexime → 1 lexim.
+  // ---------------------------------------------------------------
   const sinkronizoBazen = async () => {
     setDukeSinkronizuar(true);
     setMesazhi('');
+    setLexime(null);
     try {
       let shtuar = 0;
+      // 1 lexim i vetëm për të gjithë koleksionin (jo një për çdo biznes)
+      const ekzistuesit = await getDocs(collection(db, 'bizneset'));
+      setLexime(1);
+      const emratEkzistues = new Set();
+      ekzistuesit.forEach((d) => {
+        const t = d.data() || {};
+        // Dokumentet e reja kanë 'emriKerkim'; të vjetrat normalizohen tani
+        emratEkzistues.add(t.emriKerkim || normalizo(t.emri));
+      });
+
       for (const b of biznesetFillestare) {
-        const ekziston = await getDocs(query(collection(db, 'bizneset'), where('emri', '==', b.emri)));
-        if (ekziston.size === 0) {
-          await addDoc(collection(db, 'bizneset'), {
-            ...b,
-            status: 'aprovar',
-            krijuarM: new Date().toISOString(),
-            shtuarMNga: 'Sistemi (bazë fillestare)',
-          });
-          shtuar++;
-        }
+        const kyç = normalizo(b.emri);
+        if (emratEkzistues.has(kyç)) continue;
+        await addDoc(collection(db, 'bizneset'), {
+          ...b,
+          emriKerkim: ndertoEmrinKerkim(b),
+          status: 'aprovar',
+          krijuarM: new Date().toISOString(),
+          shtuarMNga: 'Sistemi (bazë fillestare)',
+        });
+        emratEkzistues.add(kyç);
+        shtuar++;
       }
       if (shtuar > 0) regjistroAudit('sinkronizim_baze', { numri: shtuar });
       setMesazhi(shtuar > 0 ? `✅ ${shtuar} biznese u ngarkuan në cloud — tani mund t'i menaxhoni.` : '✅ Baza është e sinkronizuar — s\u2019ka asgjë e re për ngarkim.');
@@ -164,11 +185,19 @@ function Dashboard({ onNav }) {
             {biznesetLokale.length} biznese ({biznesetLokale.map((b) => b.emri.split(' ')[0]).slice(0, 4).join(', ')}…) ekzistojnë ende vetëm në aplikacion.
             Ngarkojini në cloud për t'i menaxhur (edhje, fshi, mirato) nga ky panel.
           </p>
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', fontWeight: '600', color: '#16a34a' }}>
+            ⚡ Sinkronizim me 1 lexim të vetëm (më parë: një kërkesë për çdo biznes — 35 lexime).
+          </p>
           <button onClick={sinkronizoBazen} disabled={dukeSinkronizuar}
             style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '12px', fontWeight: '700', fontSize: '13px', cursor: 'pointer', opacity: dukeSinkronizuar ? 0.7 : 1 }}>
             {dukeSinkronizuar ? 'Duke ngarkuar...' : 'Ngarko në cloud ☁️'}
           </button>
           {mesazhi && <p style={{ margin: '10px 0 0 0', fontSize: '13px', fontWeight: '600' }}>{mesazhi}</p>}
+          {lexime != null && (
+            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#8e8e93' }}>
+              📉 Lexime të kryera në sinkronizimin e fundit: <b>{lexime}</b> (më parë: {biznesetFillestare.length}).
+            </p>
+          )}
         </div>
       )}
     </div>

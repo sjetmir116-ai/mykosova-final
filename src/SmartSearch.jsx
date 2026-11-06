@@ -4,6 +4,7 @@ import { useBizneset, merrMapsUrl } from './useBizneset';
 import { useKategorite, useQyteteve } from './useKontenti';
 import { distancaKm, formatoDistancm } from './distanca';
 import { rendiPaketes } from './paketa';
+import { normalizo, tekstiKerkimit } from './kerkimi';
 
 function SmartSearch() {
   const { darkMode, vleraKerkimi, userLocation, setBiznesiIzgjedhur, t, vendndodhja } = useContext(AppContext);
@@ -20,12 +21,12 @@ function SmartSearch() {
     if (vleraKerkimi) setKërkimi(vleraKerkimi);
   }, [vleraKerkimi]);
 
-  const normalizo = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const fjalaKyçe = normalizo(kërkimi);
 
   // Filtrimi inteligjent (emër, kategori, qytet, adresë, përshkrim)
   let biznesetEfiltruara = bizneset.filter((b) => {
     const pasqyronKerkimin = !fjalaKyçe ||
+      tekstiKerkimit(b).includes(fjalaKyçe) ||
       normalizo(b.emri).includes(fjalaKyçe) ||
       normalizo(b.kategoria).includes(fjalaKyçe) ||
       normalizo(b.qyteti).includes(fjalaKyçe) ||

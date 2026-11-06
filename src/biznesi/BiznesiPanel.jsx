@@ -9,6 +9,7 @@ import { useOfertat, shtoOferta, fshiOfertu, esOfertaAktive } from '../useOferta
 import { db, fcn } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { doc, updateDoc } from 'firebase/firestore';
+import { normalizo } from '../kerkimi';
 import { regjistroAudit } from '../audit';
 import { hapLinkun } from '../hapLinkun';
 
@@ -178,7 +179,7 @@ function Profili({ biznesi, darkMode, stiliTekstit, korniza }) {
     setDukeRuajtur(true);
     setMesazhi('');
     try {
-      await updateDoc(doc(db, 'bizneset', biznesi.id), { ...form });
+      await updateDoc(doc(db, 'bizneset', biznesi.id), { ...form, emriKerkim: normalizo(form.emri) });
       regjistroAudit('biznesi_profil_ndryshim', { emri: biznesi.emri });
       setMesazhi('✅ Profili u ruajt.');
     } catch (err) {

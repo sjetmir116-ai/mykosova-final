@@ -3,6 +3,7 @@ import { AppContext } from '../AppContext';
 import { db, fcn, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDoc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { ndertoEmrinKerkim } from '../kerkimi';
 import {
   eSigurtPerRuajtje,
   fshiGooglePlacesApiKey,
@@ -351,6 +352,8 @@ function mapoPlaceDirekt(place, { kategoriaEKerkuar = '', qytetiIKerkuar = '', s
 
   const dok = {
     emri,
+    // v1.0.17 — fusha 'emriKerkim' ruhet që në import (kërkim pa diakritika)
+    emriKerkim: ndertoEmrinKerkim({ emri, qyteti }),
     pershkrimi: tekstiGoogle(place?.editorialSummary) || '',
     kategoria,
     qyteti,
