@@ -49,7 +49,7 @@ service cloud.firestore {
     function fushaTePronarit() {
       return ['emri', 'kategoria', 'qyteti', 'adresa', 'foto', 'telefoni',
               'whatsapp', 'website', 'pershkrimi', 'oferta', 'lat', 'lng',
-              'orari', 'sherbimet', 'paketaKërkuar'];
+              'orari', 'sherbimet', 'paketaKërkuar', 'emriKerkim'];
     }
 
     // ===== 1. PËRDORUESIT (llogaritë) =====

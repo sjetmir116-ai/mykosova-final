@@ -7,6 +7,7 @@ import { regjistroAudit } from './audit';
 import Foto from './Foto';
 import QytetiManual from './QytetiManual';
 import { ekzekutoNgjarjen } from './analytics';
+import { normalizo } from './kerkimi';
 import {
   GOOGLE_PLACES_AUTOCOMPLETE_DEBOUNCE_MS,
   GOOGLE_PLACES_AUTOCOMPLETE_MIN_CHARS,
@@ -425,6 +426,8 @@ function ShtoBiznes() {
 
     const dataBiznesi = {
       emri: form.emri,
+      // v1.0.17 — emri i normalizuar për kërkim të shpejtë (ë→e, ç→c, case-insensitive)
+      emriKerkim: normalizo(form.emri),
       pershkrimi: form.pershkrimi,
       kategoria: form.kategoria,
       qyteti: form.qyteti,

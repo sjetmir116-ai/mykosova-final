@@ -95,7 +95,7 @@ function MenaxhoBizneset() {
   })();
 
   const filtra = bizneset.filter((b) => {
-    const pasqyron = !kerkimi || normalizo(b.emri).includes(normalizo(kerkimi)) || normalizo(b.qyteti).includes(normalizo(kerkimi)) || normalizo(b.kategoria).includes(normalizo(kerkimi));
+    const pasqyron = !kerkimi || (b.emriKerkim || normalizo(b.emri)).includes(normalizo(kerkimi)) || normalizo(b.qyteti).includes(normalizo(kerkimi)) || normalizo(b.kategoria).includes(normalizo(kerkimi));
     const statusiOK = filtrStatusi === 'teGjitha' || (filtrStatusi === 'pendshe' ? b.status === 'pendshe' : b.status !== 'pendshe');
     const qytetiOK = filtrQyteti === 'teGjitha' || normalizo(b.qyteti) === normalizo(filtrQyteti);
     const burimiOK = !vetemGoogle || ngaGoogle(b);

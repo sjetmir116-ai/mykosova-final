@@ -11,7 +11,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "════════════════════════════════════════════"
-echo "  1/5 — TESTET UNITARE (75 testë)"
+echo "  1/5 — TESTET UNITARE (91 testë)"
 echo "════════════════════════════════════════════"
 node tests/test-distanca.mjs
 node tests/test-turizmi.mjs
@@ -20,6 +20,7 @@ node tests/test-analytics.mjs
 node tests/test-embed.mjs
 node tests/test-kodiGeografike.mjs
 node tests/test-google-places.mjs
+node tests/test-kerkimi.mjs
 
 echo ""
 echo "════════════════════════════════════════════"

@@ -9,7 +9,9 @@ const stub = burimi
   .replace("import { useEffect, useState } from 'react';", 'const useEffect = () => {}; const useState = (v) => [v, () => {}];')
   .replace("import { db } from './firebase';", 'const db = {};')
   .replace("import { collection, onSnapshot } from 'firebase/firestore';", 'const collection = () => []; const onSnapshot = () => () => {};')
-  .replace("import { biznesetFillestare } from './teDhenat';", 'const biznesetFillestare = [];');
+  .replace("import { biznesetFillestare } from './teDhenat';", 'const biznesetFillestare = [];')
+  // v1.0.17: edhe helper-at e kërkimit stub-ohen (Node s'e zgjidh './kerkimi' pa prapashtesë)
+  .replace("import { normalizo, ndertoEmrinKerkim } from './kerkimi';", "const normalizo = (v) => String(v || '').toLowerCase(); const ndertoEmrinKerkim = (b) => normalizo(b && b.emri);");
 const tmp = path.join(import.meta.dirname, '..', 'src', '__useBizneset-stub-tmp.mjs');
 fs.writeFileSync(tmp, stub);
 
